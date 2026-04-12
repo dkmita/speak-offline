@@ -8,6 +8,8 @@ final class FlashcardViewModel: ObservableObject {
     @Published var currentIndex: Int = 0
     @Published var isShowingAnswer: Bool = false
 
+    let speechService: SpeechService
+
     private var cancellable: AnyCancellable?
     private let database: AppDatabase
     let deckId: Int64
@@ -27,10 +29,15 @@ final class FlashcardViewModel: ObservableObject {
         currentIndex < cards.count - 1
     }
 
-    init(deckId: Int64, deckName: String, database: AppDatabase = .shared) {
+    init(deckId: Int64, deckName: String, languageCode: String = "es", database: AppDatabase = .shared) {
         self.deckId = deckId
         self.deckName = deckName
         self.database = database
+
+        // Map language code to locale (es -> es-ES, fr -> fr-FR, etc.)
+        let locale = Locale(identifier: "\(languageCode)-\(languageCode.uppercased())")
+        self.speechService = SpeechService(locale: locale)
+
         loadDueCards()
     }
 
@@ -45,6 +52,8 @@ final class FlashcardViewModel: ObservableObject {
             }
             currentIndex = 0
             isShowingAnswer = false
+            speechService.stopListening()
+            speechService.transcript = ""
         } catch {
             cards = []
         }
@@ -52,6 +61,16 @@ final class FlashcardViewModel: ObservableObject {
 
     func showAnswer() {
         isShowingAnswer = true
+    }
+
+    func toggleMic() async {
+        if speechService.isListening {
+            speechService.stopListening()
+        } else {
+            let permitted = await speechService.requestPermissions()
+            guard permitted else { return }
+            speechService.startListening()
+        }
     }
 
     func rate(quality: Int) {
@@ -78,11 +97,13 @@ final class FlashcardViewModel: ObservableObject {
     }
 
     private func advance() {
+        speechService.stopListening()
+        speechService.transcript = ""
+
         if hasNext {
             currentIndex += 1
             isShowingAnswer = false
         } else {
-            // Reload to see if any cards became due again (failed cards)
             loadDueCards()
         }
     }

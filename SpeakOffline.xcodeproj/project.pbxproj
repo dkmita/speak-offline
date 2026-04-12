@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		06B2F3174537B657E519232E /* Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996954FA2861C7F4EC604145 /* Deck.swift */; };
+		0756A0322A68D5EAC10EF73D /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A488FE7AF9F8437987286241 /* SpeechService.swift */; };
 		1EA1C5AE9DCE672B128CCC54 /* DeckListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39F237B88728089E391D98F9 /* DeckListView.swift */; };
 		4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A64870782AD61A8255FCD89 /* Assets.xcassets */; };
 		5D4BF4D7DE0C99131CAD9667 /* SpeakOfflineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */; };
@@ -45,6 +46,7 @@
 		95F12EE9E2B9FD1F5256F7C4 /* SpeakOffline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SpeakOffline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakOfflineTests.swift; sourceTree = "<group>"; };
 		996954FA2861C7F4EC604145 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deck.swift; sourceTree = "<group>"; };
+		A488FE7AF9F8437987286241 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardViewModel.swift; sourceTree = "<group>"; };
 		E69FAF965358628C04A57594 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		EC9BD877A07C1F67989317A6 /* ReviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewSession.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				A691F474A46647DE46CBBC89 /* Models */,
 				26050548966F78C780751C78 /* Preview Content */,
 				4F21590CC2F88DC89D88BA5B /* Resources */,
+				8F7B188B3F9904F787B00FC3 /* Services */,
 				89905919E735E27CB59F2FDA /* ViewModels */,
 				0EE31A87D342D958CE64612D /* Views */,
 			);
@@ -135,6 +138,14 @@
 				D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */,
 			);
 			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		8F7B188B3F9904F787B00FC3 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				A488FE7AF9F8437987286241 /* SpeechService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		A691F474A46647DE46CBBC89 /* Models */ = {
@@ -264,6 +275,7 @@
 				FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */,
 				67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */,
 				60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */,
+				0756A0322A68D5EAC10EF73D /* SpeechService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -13,6 +13,7 @@ final class DeckListViewModel: ObservableObject {
         let id: Int64
         let name: String
         let description: String
+        let languageCode: String
         let totalCards: Int
         let dueCards: Int
     }
@@ -37,6 +38,7 @@ final class DeckListViewModel: ObservableObject {
                     id: deck.id!,
                     name: deck.name,
                     description: deck.description,
+                    languageCode: deck.languageCode,
                     totalCards: totalCards,
                     dueCards: dueCards
                 )

@@ -30,7 +30,7 @@ struct DeckListView: View {
             }
             .navigationTitle("SpeakOffline")
             .navigationDestination(for: DeckListViewModel.DeckSummary.self) { deck in
-                FlashcardView(viewModel: FlashcardViewModel(deckId: deck.id, deckName: deck.name))
+                FlashcardView(viewModel: FlashcardViewModel(deckId: deck.id, deckName: deck.name, languageCode: deck.languageCode))
             }
         }
     }

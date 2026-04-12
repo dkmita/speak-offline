@@ -30,6 +30,9 @@ struct FlashcardView: View {
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                             .transition(.opacity)
+
+                        // Mic button + transcript
+                        micSection
                     }
                 }
                 .padding(32)
@@ -71,6 +74,51 @@ struct FlashcardView: View {
         .navigationTitle(viewModel.deckName)
         .animation(.default, value: viewModel.isShowingAnswer)
     }
+
+    // MARK: - Mic Section
+
+    private var micSection: some View {
+        VStack(spacing: 12) {
+            Button {
+                Task { await viewModel.toggleMic() }
+            } label: {
+                Image(systemName: viewModel.speechService.isListening ? "mic.fill" : "mic")
+                    .font(.title)
+                    .foregroundStyle(viewModel.speechService.isListening ? .red : .accentColor)
+                    .frame(width: 56, height: 56)
+                    .background(
+                        Circle()
+                            .fill(viewModel.speechService.isListening ? Color.red.opacity(0.15) : Color.accentColor.opacity(0.1))
+                    )
+            }
+            .accessibilityLabel(viewModel.speechService.isListening ? "Stop recording" : "Start recording")
+
+            if !viewModel.speechService.transcript.isEmpty {
+                Text(viewModel.speechService.transcript)
+                    .font(.body)
+                    .italic()
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+                    .transition(.opacity)
+            }
+
+            if viewModel.speechService.isListening {
+                Text("Listening...")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let error = viewModel.speechService.error {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        }
+        .padding(.top, 8)
+    }
+
+    // MARK: - Rating Buttons
 
     private var ratingButtons: some View {
         HStack(spacing: 12) {
