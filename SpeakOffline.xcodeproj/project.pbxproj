@@ -1,0 +1,522 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06B2F3174537B657E519232E /* Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996954FA2861C7F4EC604145 /* Deck.swift */; };
+		1EA1C5AE9DCE672B128CCC54 /* DeckListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39F237B88728089E391D98F9 /* DeckListView.swift */; };
+		4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A64870782AD61A8255FCD89 /* Assets.xcassets */; };
+		5D4BF4D7DE0C99131CAD9667 /* SpeakOfflineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */; };
+		60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */; };
+		60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723806FAB089A367D9040B22 /* DeckListViewModel.swift */; };
+		67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BD877A07C1F67989317A6 /* ReviewSession.swift */; };
+		7FD0A21F2674AE0CB035BE6D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4849C3C770319D9E1C5F13D7 /* GRDB */; };
+		88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4672B74B1E0D204E9D234B05 /* FlashcardView.swift */; };
+		D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440052248FBC4ECC81C41EDD /* AppDatabase.swift */; };
+		DCBE27B2FD5C3FAC3308C889 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022FEFF32CAB57F19272FE49 /* Card.swift */; };
+		E09A4E71EEF167F3D45E2724 /* seed.json in Resources */ = {isa = PBXBuildFile; fileRef = 1AB94BBFE9E1DF9E97C40524 /* seed.json */; };
+		FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CA37011ED29EEFBB673AC28A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1E9DBE3C5B645FDED2FA4383 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 57BCAA336DFBA62A0A2BFB0A;
+			remoteInfo = SpeakOffline;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		022FEFF32CAB57F19272FE49 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakOfflineApp.swift; sourceTree = "<group>"; };
+		1AB94BBFE9E1DF9E97C40524 /* seed.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = seed.json; sourceTree = "<group>"; };
+		39F237B88728089E391D98F9 /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListView.swift; sourceTree = "<group>"; };
+		3A64870782AD61A8255FCD89 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		440052248FBC4ECC81C41EDD /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
+		4672B74B1E0D204E9D234B05 /* FlashcardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardView.swift; sourceTree = "<group>"; };
+		6C54355E556A2E7AF19675FA /* SpeakOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SpeakOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		723806FAB089A367D9040B22 /* DeckListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListViewModel.swift; sourceTree = "<group>"; };
+		95F12EE9E2B9FD1F5256F7C4 /* SpeakOffline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SpeakOffline.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakOfflineTests.swift; sourceTree = "<group>"; };
+		996954FA2861C7F4EC604145 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deck.swift; sourceTree = "<group>"; };
+		D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardViewModel.swift; sourceTree = "<group>"; };
+		E69FAF965358628C04A57594 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		EC9BD877A07C1F67989317A6 /* ReviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewSession.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F126390518BC236A72AA0DAB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7FD0A21F2674AE0CB035BE6D /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		082E4F9D3D6566C617A093CE = {
+			isa = PBXGroup;
+			children = (
+				7A7267500571FE31899BBECC /* SpeakOffline */,
+				AAC2F54D3246971ED9AAD057 /* SpeakOfflineTests */,
+				09941B1708EDD1840DC2246B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		09941B1708EDD1840DC2246B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				95F12EE9E2B9FD1F5256F7C4 /* SpeakOffline.app */,
+				6C54355E556A2E7AF19675FA /* SpeakOfflineTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0EE31A87D342D958CE64612D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				39F237B88728089E391D98F9 /* DeckListView.swift */,
+				4672B74B1E0D204E9D234B05 /* FlashcardView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		26050548966F78C780751C78 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		2715A33E9B664783586EF5D4 /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				440052248FBC4ECC81C41EDD /* AppDatabase.swift */,
+			);
+			path = Database;
+			sourceTree = "<group>";
+		};
+		4F21590CC2F88DC89D88BA5B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1AB94BBFE9E1DF9E97C40524 /* seed.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		7A7267500571FE31899BBECC /* SpeakOffline */ = {
+			isa = PBXGroup;
+			children = (
+				3A64870782AD61A8255FCD89 /* Assets.xcassets */,
+				E69FAF965358628C04A57594 /* Info.plist */,
+				043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */,
+				2715A33E9B664783586EF5D4 /* Database */,
+				A691F474A46647DE46CBBC89 /* Models */,
+				26050548966F78C780751C78 /* Preview Content */,
+				4F21590CC2F88DC89D88BA5B /* Resources */,
+				89905919E735E27CB59F2FDA /* ViewModels */,
+				0EE31A87D342D958CE64612D /* Views */,
+			);
+			path = SpeakOffline;
+			sourceTree = "<group>";
+		};
+		89905919E735E27CB59F2FDA /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				723806FAB089A367D9040B22 /* DeckListViewModel.swift */,
+				D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		A691F474A46647DE46CBBC89 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				022FEFF32CAB57F19272FE49 /* Card.swift */,
+				996954FA2861C7F4EC604145 /* Deck.swift */,
+				EC9BD877A07C1F67989317A6 /* ReviewSession.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AAC2F54D3246971ED9AAD057 /* SpeakOfflineTests */ = {
+			isa = PBXGroup;
+			children = (
+				98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */,
+			);
+			path = SpeakOfflineTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2222A8F55126B6136FEC055E /* SpeakOfflineTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0BA6967FB9120B9EF8ACFD8B /* Build configuration list for PBXNativeTarget "SpeakOfflineTests" */;
+			buildPhases = (
+				29B7D219502126A30C3510D9 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A5BCCBC222C9C35E6C9CDDE7 /* PBXTargetDependency */,
+			);
+			name = SpeakOfflineTests;
+			packageProductDependencies = (
+			);
+			productName = SpeakOfflineTests;
+			productReference = 6C54355E556A2E7AF19675FA /* SpeakOfflineTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		57BCAA336DFBA62A0A2BFB0A /* SpeakOffline */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 608DC8561F61388C7B457958 /* Build configuration list for PBXNativeTarget "SpeakOffline" */;
+			buildPhases = (
+				B72F3BA11503B0FAB4723892 /* Sources */,
+				4B85F98C8637F5A19E8F2486 /* Resources */,
+				F126390518BC236A72AA0DAB /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SpeakOffline;
+			packageProductDependencies = (
+				4849C3C770319D9E1C5F13D7 /* GRDB */,
+			);
+			productName = SpeakOffline;
+			productReference = 95F12EE9E2B9FD1F5256F7C4 /* SpeakOffline.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1E9DBE3C5B645FDED2FA4383 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 98CB2835C7C4CF78348AADC6 /* Build configuration list for PBXProject "SpeakOffline" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 082E4F9D3D6566C617A093CE;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				07387FC18F59002D226CED52 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 09941B1708EDD1840DC2246B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				57BCAA336DFBA62A0A2BFB0A /* SpeakOffline */,
+				2222A8F55126B6136FEC055E /* SpeakOfflineTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4B85F98C8637F5A19E8F2486 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */,
+				E09A4E71EEF167F3D45E2724 /* seed.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		29B7D219502126A30C3510D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5D4BF4D7DE0C99131CAD9667 /* SpeakOfflineTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B72F3BA11503B0FAB4723892 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */,
+				DCBE27B2FD5C3FAC3308C889 /* Card.swift in Sources */,
+				06B2F3174537B657E519232E /* Deck.swift in Sources */,
+				1EA1C5AE9DCE672B128CCC54 /* DeckListView.swift in Sources */,
+				60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */,
+				88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */,
+				FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */,
+				67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */,
+				60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A5BCCBC222C9C35E6C9CDDE7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 57BCAA336DFBA62A0A2BFB0A /* SpeakOffline */;
+			targetProxy = CA37011ED29EEFBB673AC28A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1A53A984726FCC7344E03AE0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.speakoffline.SpeakOfflineTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpeakOffline.app/SpeakOffline";
+			};
+			name = Release;
+		};
+		5692E69AD1F7A454AD415FDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = SpeakOffline/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.speakoffline.app;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		63DBC20D2875E0167A63769E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				INFOPLIST_FILE = SpeakOffline/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.speakoffline.app;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		6F397C60BB3DA6D4C8FBA1C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B62413237988B34FAE77F619 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C95D9A9F0EDAB8DC7A733F86 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.speakoffline.SpeakOfflineTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpeakOffline.app/SpeakOffline";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0BA6967FB9120B9EF8ACFD8B /* Build configuration list for PBXNativeTarget "SpeakOfflineTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C95D9A9F0EDAB8DC7A733F86 /* Debug */,
+				1A53A984726FCC7344E03AE0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		608DC8561F61388C7B457958 /* Build configuration list for PBXNativeTarget "SpeakOffline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				63DBC20D2875E0167A63769E /* Debug */,
+				5692E69AD1F7A454AD415FDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		98CB2835C7C4CF78348AADC6 /* Build configuration list for PBXProject "SpeakOffline" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6F397C60BB3DA6D4C8FBA1C7 /* Debug */,
+				B62413237988B34FAE77F619 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		07387FC18F59002D226CED52 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4849C3C770319D9E1C5F13D7 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 07387FC18F59002D226CED52 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 1E9DBE3C5B645FDED2FA4383 /* Project object */;
+}

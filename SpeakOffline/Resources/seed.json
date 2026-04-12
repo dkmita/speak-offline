@@ -1,0 +1,58 @@
+{
+  "decks": [
+    {
+      "name": "Greetings & Basics",
+      "description": "Essential Spanish greetings and everyday phrases",
+      "languageCode": "es",
+      "cards": [
+        { "front": "Hola", "back": "Hello", "phonetic": "OH-lah" },
+        { "front": "Buenos días", "back": "Good morning", "phonetic": "BWEH-nos DEE-ahs" },
+        { "front": "Buenas tardes", "back": "Good afternoon", "phonetic": "BWEH-nahs TAR-des" },
+        { "front": "Buenas noches", "back": "Good evening / Good night", "phonetic": "BWEH-nahs NOH-ches" },
+        { "front": "¿Cómo estás?", "back": "How are you?", "phonetic": "KOH-moh es-TAHS" },
+        { "front": "Bien, gracias", "back": "Fine, thank you", "phonetic": "bee-EN, GRAH-see-ahs" },
+        { "front": "Por favor", "back": "Please", "phonetic": "por fah-VOR" },
+        { "front": "Gracias", "back": "Thank you", "phonetic": "GRAH-see-ahs" },
+        { "front": "De nada", "back": "You're welcome", "phonetic": "deh NAH-dah" },
+        { "front": "Lo siento", "back": "I'm sorry", "phonetic": "loh see-EN-toh" },
+        { "front": "Adiós", "back": "Goodbye", "phonetic": "ah-dee-OHS" },
+        { "front": "Hasta luego", "back": "See you later", "phonetic": "AHS-tah LWEH-goh" },
+        { "front": "¿Cómo te llamas?", "back": "What is your name?", "phonetic": "KOH-moh teh YAH-mahs" },
+        { "front": "Me llamo...", "back": "My name is...", "phonetic": "meh YAH-moh" },
+        { "front": "Mucho gusto", "back": "Nice to meet you", "phonetic": "MOO-choh GOOS-toh" }
+      ]
+    },
+    {
+      "name": "Common Verbs",
+      "description": "Frequently used Spanish verbs with example phrases",
+      "languageCode": "es",
+      "cards": [
+        { "front": "Quiero", "back": "I want", "phonetic": "kee-EH-roh" },
+        { "front": "Necesito", "back": "I need", "phonetic": "neh-seh-SEE-toh" },
+        { "front": "Tengo", "back": "I have", "phonetic": "TEN-goh" },
+        { "front": "Puedo", "back": "I can", "phonetic": "PWEH-doh" },
+        { "front": "Voy", "back": "I go", "phonetic": "boy" },
+        { "front": "Soy", "back": "I am (permanent)", "phonetic": "soy" },
+        { "front": "Estoy", "back": "I am (temporary)", "phonetic": "es-TOY" },
+        { "front": "Hablo", "back": "I speak", "phonetic": "AH-bloh" },
+        { "front": "Entiendo", "back": "I understand", "phonetic": "en-tee-EN-doh" },
+        { "front": "No entiendo", "back": "I don't understand", "phonetic": "noh en-tee-EN-doh" }
+      ]
+    },
+    {
+      "name": "At a Restaurant",
+      "description": "Useful phrases for ordering food and dining out",
+      "languageCode": "es",
+      "cards": [
+        { "front": "La cuenta, por favor", "back": "The check, please", "phonetic": "lah KWEN-tah por fah-VOR" },
+        { "front": "¿Qué recomienda?", "back": "What do you recommend?", "phonetic": "keh reh-koh-mee-EN-dah" },
+        { "front": "Quisiera...", "back": "I would like...", "phonetic": "kee-see-EH-rah" },
+        { "front": "Una mesa para dos", "back": "A table for two", "phonetic": "OO-nah MEH-sah PAH-rah dohs" },
+        { "front": "El menú", "back": "The menu", "phonetic": "el meh-NOO" },
+        { "front": "Agua, por favor", "back": "Water, please", "phonetic": "AH-gwah por fah-VOR" },
+        { "front": "Está delicioso", "back": "It's delicious", "phonetic": "es-TAH deh-lee-see-OH-soh" },
+        { "front": "Tengo hambre", "back": "I'm hungry", "phonetic": "TEN-goh AHM-breh" }
+      ]
+    }
+  ]
+}
