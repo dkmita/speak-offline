@@ -10,29 +10,29 @@ struct FlashcardView: View {
 
                 // Card
                 VStack(spacing: 16) {
-                    Text(card.front)
-                        .font(.largeTitle)
-                        .bold()
-                        .multilineTextAlignment(.center)
-
-                    if let phonetic = card.phonetic {
-                        Text(phonetic)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+                    TappableWordsView(
+                        text: card.back,
+                        answerText: card.front,
+                        font: .title3,
+                        bold: true
+                    )
 
                     if viewModel.isShowingAnswer {
                         Divider()
                             .padding(.horizontal, 40)
 
-                        Text(card.back)
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
+                        Text(card.front)
+                            .font(.body)
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                             .transition(.opacity)
 
-                        // Mic button + transcript
-                        micSection
+                        if let phonetic = card.phonetic {
+                            Text(phonetic)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
                 .padding(32)
@@ -43,116 +43,156 @@ struct FlashcardView: View {
 
                 Spacer()
 
-                // Controls
-                if viewModel.isShowingAnswer {
-                    ratingButtons
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                } else {
+                // Show Answer
+                if !viewModel.isShowingAnswer {
                     Button("Show Answer") {
                         withAnimation {
                             viewModel.showAnswer()
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .tint(.secondary)
+                } else {
+                    // Invisible placeholder to keep layout stable
+                    Button("Show Answer") {}
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .hidden()
+                }
+
+                // Mic + transcript
+                micSection
+
+                // Rating buttons — always take up space
+                if viewModel.isShowingAnswer {
+                    if viewModel.speechMatched == true {
+                        Button("Next") {
+                            viewModel.rate(quality: 5)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                    } else {
+                        manualRatingButtons
+                    }
+                } else {
+                    manualRatingButtons
+                        .hidden()
                 }
 
                 // Progress
-                Text(viewModel.progress)
+                Text("\(viewModel.cardsReviewed) reviewed")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.bottom)
 
             } else {
                 ContentUnavailableView(
-                    "All caught up!",
-                    systemImage: "checkmark.circle",
-                    description: Text("No cards due for review right now.")
+                    "No cards available",
+                    systemImage: "rectangle.on.rectangle.slash",
+                    description: Text("Try selecting a different level.")
                 )
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationTitle(viewModel.deckName)
-        .animation(.default, value: viewModel.isShowingAnswer)
+        .navigationBarTitleDisplayMode(.inline)
+        .ignoresSafeArea(edges: .bottom)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.isShowingAnswer)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.speechMatched)
     }
 
     // MARK: - Mic Section
 
     private var micSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             Button {
                 Task { await viewModel.toggleMic() }
             } label: {
-                Image(systemName: viewModel.speechService.isListening ? "mic.fill" : "mic")
+                Image(systemName: viewModel.speechService.isListening ? "mic.fill" : "mic.fill")
                     .font(.title)
-                    .foregroundStyle(viewModel.speechService.isListening ? .red : .accentColor)
-                    .frame(width: 56, height: 56)
+                    .symbolEffect(.pulse, isActive: viewModel.speechService.isListening)
+                    .foregroundStyle(.white)
+                    .frame(width: 64, height: 64)
                     .background(
                         Circle()
-                            .fill(viewModel.speechService.isListening ? Color.red.opacity(0.15) : Color.accentColor.opacity(0.1))
+                            .fill(viewModel.speechService.isListening ? Color.red : Color.accentColor)
                     )
+                    .overlay(
+                        Circle()
+                            .stroke(viewModel.speechService.isListening ? Color.red.opacity(0.4) : Color.clear, lineWidth: 3)
+                            .scaleEffect(viewModel.speechService.isListening ? 1.4 : 1.0)
+                            .opacity(viewModel.speechService.isListening ? 0 : 1)
+                            .animation(.easeOut(duration: 1).repeatForever(autoreverses: false), value: viewModel.speechService.isListening)
+                    )
+                    .shadow(color: viewModel.speechService.isListening ? .red.opacity(0.4) : .accentColor.opacity(0.3), radius: 8)
             }
             .accessibilityLabel(viewModel.speechService.isListening ? "Stop recording" : "Start recording")
 
             if !viewModel.speechService.transcript.isEmpty {
-                Text(viewModel.speechService.transcript)
-                    .font(.body)
-                    .italic()
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                    .transition(.opacity)
-            }
+                HStack(spacing: 6) {
+                    if let matched = viewModel.speechMatched {
+                        Image(systemName: matched ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                            .foregroundStyle(matched ? .green : .yellow)
+                    }
+                    Text(viewModel.coloredTranscript())
+                        .font(.body)
+                        .italic()
+                }
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal)
+                .transition(.opacity)
 
-            if viewModel.speechService.isListening {
-                Text("Listening...")
+                if viewModel.speechMatched == false {
+                    Text("Not quite — try again or show answer")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                }
+            } else if viewModel.speechService.isListening {
+                Text("Listening — speak now...")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            if let error = viewModel.speechService.error {
+                    .foregroundStyle(.orange)
+            } else if let error = viewModel.speechService.error {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
+            } else {
+                Text("Tap mic to speak")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
         }
-        .padding(.top, 8)
     }
 
     // MARK: - Rating Buttons
 
-    private var ratingButtons: some View {
+    private var manualRatingButtons: some View {
         HStack(spacing: 12) {
-            RatingButton(label: "Again", color: .red) {
-                viewModel.rate(quality: 1)
-            }
-            RatingButton(label: "Hard", color: .orange) {
-                viewModel.rate(quality: 3)
-            }
-            RatingButton(label: "Good", color: .green) {
+            // Got it — secondary, subtle green
+            Button {
                 viewModel.rate(quality: 4)
+            } label: {
+                Text("Got it")
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
             }
-            RatingButton(label: "Easy", color: .blue) {
-                viewModel.rate(quality: 5)
+            .buttonStyle(.bordered)
+            .tint(.green.opacity(0.6))
+
+            // Didn't get it — primary, subtle red
+            Button {
+                viewModel.rate(quality: 1)
+            } label: {
+                Text("Next")
+                    .font(.subheadline)
+                    .bold()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
             }
+            .buttonStyle(.borderedProminent)
         }
         .padding(.horizontal)
-    }
-}
-
-private struct RatingButton: View {
-    let label: String
-    let color: Color
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.subheadline)
-                .bold()
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-        }
-        .buttonStyle(.bordered)
-        .tint(color)
     }
 }

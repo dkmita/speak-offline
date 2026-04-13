@@ -1,12 +1,17 @@
 import Foundation
 import GRDB
 
-struct Card: Codable, Identifiable, FetchableRecord, PersistableRecord {
+struct Card: Codable, Identifiable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var deckId: Int64
     var front: String       // word/phrase in target language (Spanish)
     var back: String        // translation (English)
     var phonetic: String?   // pronunciation hint
+
+    // Duolingo-aligned difficulty metadata
+    var unit: Int            // Duolingo section (1-8)
+    var section: Int         // Overall section number (1-286), higher = harder
+    var cefrLevel: String    // "Intro", "A1", "A2", "B1", "B2"
 
     // Spaced repetition fields (SM-2 algorithm)
     var interval: Int       // days until next review
@@ -46,12 +51,16 @@ struct Card: Codable, Identifiable, FetchableRecord, PersistableRecord {
 
 extension Card {
     /// Create a new card with default spaced repetition values
-    static func new(deckId: Int64, front: String, back: String, phonetic: String? = nil) -> Card {
+    static func new(deckId: Int64, front: String, back: String, phonetic: String? = nil,
+                    unit: Int = 1, section: Int = 1, cefrLevel: String = "Intro") -> Card {
         Card(
             deckId: deckId,
             front: front,
             back: back,
             phonetic: phonetic,
+            unit: unit,
+            section: section,
+            cefrLevel: cefrLevel,
             interval: 0,
             repetitions: 0,
             easeFactor: 2.5,

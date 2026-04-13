@@ -31,6 +31,9 @@ final class AppDatabase {
                 t.column("front", .text).notNull()
                 t.column("back", .text).notNull()
                 t.column("phonetic", .text)
+                t.column("unit", .integer).notNull().defaults(to: 1)
+                t.column("section", .integer).notNull().defaults(to: 1)
+                t.column("cefrLevel", .text).notNull().defaults(to: "Intro")
                 t.column("interval", .integer).notNull().defaults(to: 0)
                 t.column("repetitions", .integer).notNull().defaults(to: 0)
                 t.column("easeFactor", .double).notNull().defaults(to: 2.5)
@@ -44,12 +47,7 @@ final class AppDatabase {
                 t.column("reviewedAt", .datetime).notNull()
             }
 
-            // Index for efficient "cards due for review" queries
-            try db.create(
-                index: "card_on_nextReviewDate",
-                on: "card",
-                columns: ["nextReviewDate"]
-            )
+            try db.create(index: "card_on_section", on: "card", columns: ["section"])
         }
 
         try migrator.migrate(dbQueue)
@@ -59,12 +57,21 @@ final class AppDatabase {
     func seedIfEmpty() throws {
         try dbQueue.write { db in
             let count = try Deck.fetchCount(db)
-            guard count == 0 else { return }
-
-            guard let url = Bundle.main.url(forResource: "seed", withExtension: "json", subdirectory: "Resources"),
-                  let data = try? Data(contentsOf: url) else {
+            guard count == 0 else {
+                print("[SpeakOffline] Database already has \(count) decks, skipping seed")
                 return
             }
+
+            let url = Bundle.main.url(forResource: "seed", withExtension: "json")
+            guard let url else {
+                print("[SpeakOffline] seed.json not found in bundle")
+                return
+            }
+            guard let data = try? Data(contentsOf: url) else {
+                print("[SpeakOffline] Failed to read seed.json at \(url)")
+                return
+            }
+            print("[SpeakOffline] Loading seed data from \(url)")
 
             let seedData = try JSONDecoder.appDecoder.decode(SeedData.self, from: data)
 
@@ -82,11 +89,15 @@ final class AppDatabase {
                         deckId: deck.id!,
                         front: seedCard.front,
                         back: seedCard.back,
-                        phonetic: seedCard.phonetic
+                        phonetic: seedCard.phonetic,
+                        unit: seedCard.unit,
+                        section: seedCard.section,
+                        cefrLevel: seedCard.cefrLevel
                     )
                     try card.insert(db)
                 }
             }
+            print("[SpeakOffline] Seeded \(try Card.fetchCount(db)) cards")
         }
     }
 }
@@ -104,6 +115,9 @@ private struct SeedData: Codable {
         let front: String
         let back: String
         let phonetic: String?
+        let unit: Int
+        let section: Int
+        let cefrLevel: String
     }
     let decks: [SeedDeck]
 }

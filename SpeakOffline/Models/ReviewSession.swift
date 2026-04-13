@@ -1,7 +1,7 @@
 import Foundation
 import GRDB
 
-struct ReviewSession: Codable, Identifiable, FetchableRecord, PersistableRecord {
+struct ReviewSession: Codable, Identifiable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var cardId: Int64
     var quality: Int        // 0-5 rating

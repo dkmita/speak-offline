@@ -1,7 +1,7 @@
 import Foundation
 import GRDB
 
-struct Deck: Codable, Identifiable, FetchableRecord, PersistableRecord {
+struct Deck: Codable, Identifiable, FetchableRecord, MutablePersistableRecord {
     var id: Int64?
     var name: String
     var description: String

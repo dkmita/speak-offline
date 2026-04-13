@@ -1,42 +1,52 @@
 import SwiftUI
 
 struct DeckListView: View {
-    @StateObject private var viewModel = DeckListViewModel()
+    @EnvironmentObject private var settings: UserSettings
 
     var body: some View {
         NavigationStack {
-            List(viewModel.decks) { deck in
-                NavigationLink(value: deck) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(deck.name)
-                            .font(.headline)
-                        Text(deck.description)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        HStack {
-                            Text("\(deck.totalCards) cards")
-                                .font(.caption2)
+            List(CEFRLevel.allCases) { level in
+                NavigationLink(value: level) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(level.rawValue)
+                                .font(.headline)
+                            Text(level.description)
+                                .font(.caption)
                                 .foregroundStyle(.secondary)
-                            if deck.dueCards > 0 {
-                                Text("\(deck.dueCards) due")
-                                    .font(.caption2)
-                                    .bold()
-                                    .foregroundStyle(.orange)
-                            }
+                            Text(level.cardCountLabel)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        Spacer()
+                        if settings.currentLevel == level {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
                         }
                     }
                     .padding(.vertical, 4)
                 }
             }
             .navigationTitle("SpeakOffline")
-            .navigationDestination(for: DeckListViewModel.DeckSummary.self) { deck in
-                FlashcardView(viewModel: FlashcardViewModel(deckId: deck.id, deckName: deck.name, languageCode: deck.languageCode))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        PhraseListView()
+                    } label: {
+                        Image(systemName: "list.bullet.rectangle")
+                    }
+                }
+            }
+            .navigationDestination(for: CEFRLevel.self) { level in
+                FlashcardView(viewModel: FlashcardViewModel(
+                    deckName: level.rawValue,
+                    languageCode: "es",
+                    settings: settings
+                ))
+                .onAppear {
+                    settings.maxSection = level.maxSection
+                }
             }
         }
     }
-}
-
-extension DeckListViewModel.DeckSummary: Hashable {
-    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }

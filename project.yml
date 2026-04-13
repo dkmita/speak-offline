@@ -16,21 +16,27 @@ targets:
     type: application
     platform: iOS
     sources:
-      - SpeakOffline
-    resources:
-      - path: SpeakOffline/Resources
-        type: folder
+      - path: SpeakOffline
+        excludes:
+          - Resources
     dependencies:
       - package: GRDB
+    info:
+      path: SpeakOffline/Info.plist
+      properties:
+        NSMicrophoneUsageDescription: "SpeakOffline needs microphone access to hear your pronunciation."
+        NSSpeechRecognitionUsageDescription: "SpeakOffline uses speech recognition to evaluate your pronunciation."
+        UILaunchScreen: {}
     settings:
       base:
-        INFOPLIST_FILE: SpeakOffline/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.speakoffline.app
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.9"
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: U55L26VLXT
 
   SpeakOfflineTests:
     type: bundle.unit-test

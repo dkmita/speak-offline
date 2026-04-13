@@ -15,7 +15,6 @@ final class DeckListViewModel: ObservableObject {
         let description: String
         let languageCode: String
         let totalCards: Int
-        let dueCards: Int
     }
 
     init(database: AppDatabase = .shared) {
@@ -25,22 +24,17 @@ final class DeckListViewModel: ObservableObject {
 
     private func observe() {
         let observation = ValueObservation.tracking { db -> [DeckSummary] in
-            let now = Date()
             let decks = try Deck.fetchAll(db)
 
             return try decks.map { deck in
                 let totalCards = try deck.cards.fetchCount(db)
-                let dueCards = try deck.cards
-                    .filter(Column("nextReviewDate") <= now)
-                    .fetchCount(db)
 
                 return DeckSummary(
                     id: deck.id!,
                     name: deck.name,
                     description: deck.description,
                     languageCode: deck.languageCode,
-                    totalCards: totalCards,
-                    dueCards: dueCards
+                    totalCards: totalCards
                 )
             }
         }
