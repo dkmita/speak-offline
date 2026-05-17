@@ -19,6 +19,7 @@
 		5D4BF4D7DE0C99131CAD9667 /* SpeakOfflineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */; };
 		60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */; };
 		60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723806FAB089A367D9040B22 /* DeckListViewModel.swift */; };
+		60D64811EF4A85D748EF7B9A /* AnswerWordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */; };
 		67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BD877A07C1F67989317A6 /* ReviewSession.swift */; };
 		7FD0A21F2674AE0CB035BE6D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4849C3C770319D9E1C5F13D7 /* GRDB */; };
 		88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4672B74B1E0D204E9D234B05 /* FlashcardView.swift */; };
@@ -49,6 +50,7 @@
 		0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolverTests.swift; sourceTree = "<group>"; };
 		180E9902A4A27ADE61473918 /* HintResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolver.swift; sourceTree = "<group>"; };
 		1EFD0C23F9DAB8F423E06459 /* vocab.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = vocab.json; sourceTree = "<group>"; };
+		22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerWordsView.swift; sourceTree = "<group>"; };
 		39F237B88728089E391D98F9 /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListView.swift; sourceTree = "<group>"; };
 		3A64870782AD61A8255FCD89 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		440052248FBC4ECC81C41EDD /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
@@ -103,6 +105,7 @@
 		0EE31A87D342D958CE64612D /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */,
 				39F237B88728089E391D98F9 /* DeckListView.swift */,
 				4672B74B1E0D204E9D234B05 /* FlashcardView.swift */,
 				871CB950566ACD54E039179B /* LevelPickerView.swift */,
@@ -292,6 +295,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				60D64811EF4A85D748EF7B9A /* AnswerWordsView.swift in Sources */,
 				D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */,
 				DCBE27B2FD5C3FAC3308C889 /* Card.swift in Sources */,
 				06B2F3174537B657E519232E /* Deck.swift in Sources */,

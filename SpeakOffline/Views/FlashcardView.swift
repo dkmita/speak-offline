@@ -10,16 +10,14 @@ struct FlashcardView: View {
                 Spacer()
 
                 // Question card
-                VStack(spacing: 16) {
-                    TappableWordsView(
-                        text: card.back,
-                        answerText: card.front,
-                        font: .title3,
-                        bold: true
-                    )
-                }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 20)
+                TappableWordsView(
+                    text: card.back,
+                    answerText: card.front,
+                    font: .title3,
+                    bold: true
+                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -32,19 +30,11 @@ struct FlashcardView: View {
                 // until tapped. Tapping fades the button out and the answer in
                 // without moving anything below.
                 ZStack {
-                    VStack(spacing: 4) {
-                        Text(card.front)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                        if let phonetic = card.phonetic {
-                            Text(phonetic)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
+                    AnswerWordsView(
+                        text: card.front,
+                        phonetic: card.phonetic,
+                        font: .body
+                    )
                     .opacity(viewModel.isShowingAnswer ? 1 : 0)
                     .accessibilityHidden(!viewModel.isShowingAnswer)
 
@@ -135,38 +125,44 @@ struct FlashcardView: View {
                 // hear themselves.
                 playbackButton
                     .transition(.opacity)
-            } else if let error = viewModel.speechService.error {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
             }
         }
     }
 
     /// Full-width press-and-hold mic button. Sized prominently and pinned to
     /// a fixed height so the button never shifts as answers/hints/transcripts
-    /// change above or below it.
+    /// change above or below it. Errors render inline as the button label so
+    /// they don't push surrounding layout around.
     private var micButton: some View {
         let listening = viewModel.speechService.isListening
+        let error = viewModel.speechService.error
+        let hasError = error != nil && !listening
+        let label: String = {
+            if listening { return "Listening — speak now..." }
+            if let error { return error }
+            return "Hold to speak"
+        }()
         return HStack(spacing: 12) {
             Image(systemName: "mic.fill")
                 .font(.title)
                 .symbolEffect(.pulse, isActive: listening)
-            Text(listening ? "Listening — speak now..." : "Hold to speak")
-                .font(.title3)
+            Text(label)
+                .font(hasError ? .subheadline : .title3)
                 .bold()
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 88)
         .padding(.horizontal, 20)
-        .foregroundStyle(listening ? Color.white : Color.accentColor)
+        .foregroundStyle(foregroundStyleForMic(listening: listening, hasError: hasError))
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(listening ? Color.red : Color.accentColor.opacity(0.12))
+                .fill(backgroundFillForMic(listening: listening, hasError: hasError))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(listening ? Color.red.opacity(0.4) : Color.clear, lineWidth: 1)
+                .stroke(borderColorForMic(listening: listening, hasError: hasError), lineWidth: 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: 14))
         .padding(.horizontal)
@@ -186,6 +182,24 @@ struct FlashcardView: View {
         )
         .accessibilityLabel("Hold to record")
         .accessibilityAddTraits(.isButton)
+    }
+
+    private func foregroundStyleForMic(listening: Bool, hasError: Bool) -> Color {
+        if listening { return .white }
+        if hasError { return .red }
+        return Color.accentColor
+    }
+
+    private func backgroundFillForMic(listening: Bool, hasError: Bool) -> Color {
+        if listening { return .red }
+        if hasError { return Color.red.opacity(0.10) }
+        return Color.accentColor.opacity(0.12)
+    }
+
+    private func borderColorForMic(listening: Bool, hasError: Bool) -> Color {
+        if listening { return Color.red.opacity(0.4) }
+        if hasError { return Color.red.opacity(0.35) }
+        return .clear
     }
 
     private var playbackButton: some View {

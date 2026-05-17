@@ -23,13 +23,13 @@ struct TappableWordsView: View {
     var body: some View {
         TappableHintsLayout(
             wordSpacing: 0,
-            rowSpacing: 8,
-            cellSpacing: 4,
-            hintCellHeight: 22,
+            rowSpacing: 6,
+            cellSpacing: 3,
+            hintCellHeight: 17,
             horizontalPadding: 10,
             minColumnWidth: 60,
             reservedHintLevels: 2,
-            maxCellOverflow: 30
+            maxCellOverflow: 55
         ) {
             ForEach(Array(words.enumerated()), id: \.offset) { index, word in
                 WordChip(
@@ -115,51 +115,23 @@ private struct HintCell: View {
     let options: [String]
     let kind: Kind
 
-    /// Per-cell state. Cells are torn down when the tapped word changes, so
-    /// this resets to false naturally on each new tap.
-    @State private var isExpanded = false
-
-    private var canExpand: Bool { options.count > 1 }
-
     var body: some View {
-        HStack(spacing: 3) {
-            Text(displayText)
-                .font(.caption2)
-                .italic(kind == .phrase)
-                .foregroundStyle(textColor)
-                .multilineTextAlignment(.center)
-
-            if canExpand && !isExpanded {
-                Image(systemName: "plus")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundStyle(textColor.opacity(0.7))
-            }
-        }
-        .padding(.horizontal, 5)
-        .padding(.vertical, 2)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(fillColor)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .stroke(strokeColor, lineWidth: 0.5)
-        )
-        .contentShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-        .onTapGesture {
-            guard canExpand else { return }
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isExpanded.toggle()
-            }
-        }
-    }
-
-    private var displayText: String {
-        if isExpanded || !canExpand {
-            return options.joined(separator: " / ")
-        }
-        return options.first ?? ""
+        Text(options.joined(separator: " / "))
+            .font(.caption2)
+            .italic(kind == .phrase)
+            .foregroundStyle(textColor)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(fillColor)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .stroke(strokeColor, lineWidth: 0.5)
+            )
     }
 
     private var textColor: Color {
