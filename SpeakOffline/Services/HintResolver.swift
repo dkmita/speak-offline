@@ -43,6 +43,10 @@ struct HintResolver {
     func resolve(forIndex index: Int, sourceWords: [String], answer: String) -> HintResult {
         guard sourceWords.indices.contains(index) else { return .empty }
         let answerTokens = Self.answerMatchTokens(answer)
+        // Stem set used as a permissive secondary match against the answer.
+        // Catches lemma/inflected-sibling pairs like tener↔tengo, rojo↔roja
+        // that exact-token equality misses.
+        let answerStems = Set(answerTokens.map(Self.spanishStem))
 
         // Single-word lookup. For contractions this becomes a phrase key
         // (e.g., "don't" → "do not"); for everything else it's one token.
@@ -55,7 +59,11 @@ struct HintResolver {
         if singleCandidates.isEmpty, singleTokens.count > 1 {
             singleCandidates = vocabulary.spanish(for: singleTokens[0])
         }
-        let single = pickSingle(from: singleCandidates, answerTokens: answerTokens)
+        let single = pickSingle(
+            from: singleCandidates,
+            answerTokens: answerTokens,
+            answerStems: answerStems
+        )
 
         // Adjacent-window phrase lookups. Spans are inclusive on both ends
         // and refer to source-word indices, not token indices — a span of
@@ -69,7 +77,12 @@ struct HintResolver {
         ]
         var phrases: [PhraseMatch] = []
         for span in probeSpans {
-            if let match = phraseMatch(forSpan: span, sourceWords: sourceWords, answerTokens: answerTokens) {
+            if let match = phraseMatch(
+                forSpan: span,
+                sourceWords: sourceWords,
+                answerTokens: answerTokens,
+                answerStems: answerStems
+            ) {
                 phrases.append(match)
             }
         }
@@ -77,9 +90,15 @@ struct HintResolver {
         return HintResult(single: single, phrases: phrases)
     }
 
-    private func pickSingle(from candidates: [String], answerTokens: Set<String>) -> [String] {
+    private func pickSingle(
+        from candidates: [String],
+        answerTokens: Set<String>,
+        answerStems: Set<String>
+    ) -> [String] {
         guard !candidates.isEmpty else { return [] }
-        let matching = candidates.filter { matches(candidate: $0, answerTokens: answerTokens) }
+        let matching = candidates.filter {
+            matches(candidate: $0, answerTokens: answerTokens, answerStems: answerStems)
+        }
         if !matching.isEmpty { return matching }
         return Array(candidates.prefix(3))
     }
@@ -89,7 +108,8 @@ struct HintResolver {
     private func phraseMatch(
         forSpan span: ClosedRange<Int>,
         sourceWords: [String],
-        answerTokens: Set<String>
+        answerTokens: Set<String>,
+        answerStems: Set<String>
     ) -> PhraseMatch? {
         guard span.lowerBound >= 0,
               span.upperBound < sourceWords.count
@@ -97,14 +117,26 @@ struct HintResolver {
         let tokens = span.flatMap { Self.lookupTokens(forWord: sourceWords[$0]) }
         guard !tokens.isEmpty else { return nil }
         let key = tokens.joined(separator: " ")
-        let matching = vocabulary.spanish(for: key).filter { matches(candidate: $0, answerTokens: answerTokens) }
+        let matching = vocabulary.spanish(for: key).filter {
+            matches(candidate: $0, answerTokens: answerTokens, answerStems: answerStems)
+        }
         guard !matching.isEmpty else { return nil }
         return PhraseMatch(translations: matching, span: span)
     }
 
-    private func matches(candidate: String, answerTokens: Set<String>) -> Bool {
+    /// True if every tokenized part of the candidate appears in the answer.
+    /// "Appears" means exact-token equality OR the part's Spanish stem
+    /// equals one of the answer's stems (length ≥ 3). The stem path catches
+    /// lemma/inflected-sibling mismatches like `tener` (dict) vs `tengo`
+    /// (answer) and `rojo` vs `roja`.
+    private func matches(candidate: String, answerTokens: Set<String>, answerStems: Set<String>) -> Bool {
         let parts = Self.tokenize(candidate)
-        return !parts.isEmpty && parts.allSatisfy { answerTokens.contains($0) }
+        guard !parts.isEmpty else { return false }
+        return parts.allSatisfy { part in
+            if answerTokens.contains(part) { return true }
+            let stem = Self.spanishStem(part)
+            return stem.count >= 3 && answerStems.contains(stem)
+        }
     }
 
     // MARK: - Static helpers
@@ -194,6 +226,117 @@ struct HintResolver {
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
     }
+
+    /// Reduce a Spanish token to a comparable stem.
+    ///
+    /// Pipeline:
+    /// 1. Lowercase + strip diacritics (so `rojó`/`rojo` compare equal).
+    /// 2. If the surface form is a known irregular form with no useful
+    ///    suffix to strip (`soy`, `voy`, `hay`, `he`, `ha`, …), map it
+    ///    directly to the lemma stem.
+    /// 3. Strip the longest matching Spanish inflection suffix, requiring
+    ///    a result of ≥ 3 chars. Catches regular noun/adjective
+    ///    plurals/genders and regular verb conjugations.
+    /// 4. If the stripped stem matches a known irregular stem variant
+    ///    (`teng`, `tien`, `tuv` from `tener`; `pued`, `pud` from `poder`;
+    ///    etc.), normalize it to a canonical stem (`ten`, `pod`) so all
+    ///    variants of one lemma collapse together.
+    static func spanishStem(_ s: String) -> String {
+        let normalized = s.lowercased()
+            .folding(options: .diacriticInsensitive, locale: nil)
+        if let direct = irregularSurfaceForms[normalized] {
+            return direct
+        }
+        for suf in spanishInflectionSuffixes {
+            if normalized.count > suf.count + 2 && normalized.hasSuffix(suf) {
+                let stem = String(normalized.dropLast(suf.count))
+                return irregularStemMap[stem] ?? stem
+            }
+        }
+        return normalized
+    }
+
+    /// Spanish inflection suffixes, longest first so the matcher strips the
+    /// longest applicable ending. Kept conservative — short single-char
+    /// gender endings (-o/-a) are at the bottom of the priority list.
+    private static let spanishInflectionSuffixes: [String] = [
+        "ariamos", "eriamos", "iriamos",
+        "abamos", "iamos",
+        "ariais", "eriais", "iriais",
+        "aremos", "eremos", "iremos",
+        "asteis", "isteis", "ierais",
+        "iendo", "yendo",
+        "abais", "iabamos",
+        "ados", "adas", "idos", "idas",
+        "aron", "ieron", "eron",
+        "amos", "emos", "imos",
+        "aban", "ian", "ais", "eis",
+        "ando", "ndo",
+        "ado", "ada", "ido", "ida",
+        "aba", "ias", "ria",
+        "an", "en",
+        "ar", "er", "ir",
+        "as", "es", "os", "is",
+        "io",
+        "a", "e", "o", "s"
+    ]
+
+    /// Common irregular Spanish surface forms with no strippable suffix.
+    /// These bypass suffix stripping and map directly to a canonical lemma
+    /// stem so e.g. `soy` and `ser` both stem to `ser`, and `hay`/`he`/`ha`
+    /// all stem to `hab` (haber).
+    private static let irregularSurfaceForms: [String: String] = [
+        // ser
+        "soy": "ser",
+        // ir
+        "voy": "ir",
+        // dar
+        "doy": "dar",
+        // ver
+        "veo": "ver",
+        // haber (auxiliary "have")
+        "hay": "hab", "he": "hab", "ha": "hab", "has": "hab", "han": "hab", "hemos": "hab",
+        // estar
+        "estoy": "est"
+    ]
+
+    /// Irregular stem variants → canonical stem. Applied after suffix
+    /// stripping to unify forms whose stems shift between persons/tenses.
+    /// E.g. `tener` (lemma) strips to `ten`; `tengo` strips to `teng`;
+    /// `tienes` strips to `tien`; `tuvo` strips to `tuv`. Mapping the
+    /// three variants back to `ten` lets the matcher treat them as one.
+    private static let irregularStemMap: [String: String] = [
+        // tener
+        "teng": "ten", "tien": "ten", "tuv": "ten", "tendr": "ten",
+        // venir
+        "veng": "ven", "vien": "ven", "vin": "ven", "vendr": "ven",
+        // poder
+        "pued": "pod", "pud": "pod", "podr": "pod",
+        // querer
+        "quier": "quer", "quis": "quer", "querr": "quer",
+        // hacer
+        "hag": "hac", "hic": "hac", "hiz": "hac", "hech": "hac", "har": "hac",
+        // decir
+        "dig": "dec", "dij": "dec", "dir": "dec", "dich": "dec",
+        // poner
+        "pong": "pon", "pus": "pon", "pondr": "pon", "puest": "pon",
+        // salir
+        "salg": "sal", "saldr": "sal",
+        // saber
+        "sep": "sab", "sup": "sab", "sabr": "sab",
+        // estar
+        "estuv": "est",
+        // ser
+        "ere": "ser", "som": "ser", "sea": "ser", "sid": "ser",
+        // ir (and overlap with ser past — favor ir here)
+        "iba": "ir", "vay": "ir", "yend": "ir",
+        // dar
+        "dad": "dar",
+        // ver
+        "vist": "ver", "vea": "ver",
+        // haber stem variants
+        "hub": "hab", "habr": "hab", "haya": "hab", "habid": "hab", "habi": "hab"
+    ]
 
     /// The set of tokens to use when checking whether a candidate translation
     /// appears in the card's answer. Includes every plain token plus any

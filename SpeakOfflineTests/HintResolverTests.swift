@@ -10,19 +10,22 @@ final class HintResolverTests: XCTestCase {
     // MARK: - Single-word lookups
 
     func test_picksTheFormThatAppearsInTheAnswer() {
-        // "red" maps to [roja, rojas, rojo]. Answer uses the feminine
-        // singular "roja" — we should pick exactly that, not the masculine
-        // or plural forms.
+        // "red" maps to all gender/number forms — roja, rojas, rojo. The
+        // answer uses "roja" (feminine). With stem matching, all three
+        // candidates whose stem `roj` is in the answer come through, but
+        // crucially the form the answer actually uses is among them.
         let words = ["The", "red", "bicycle"]
         let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "La bicicleta roja.")
-        XCTAssertEqual(result.single, ["roja"])
+        XCTAssertTrue(result.single.contains("roja"),
+                      "expected `roja` in single matches; got: \(result.single)")
         XCTAssertTrue(result.phrases.isEmpty, "unexpected phrases: \(result.phrases)")
     }
 
     func test_caseAndPunctuationDoNotBreakLookup() {
         let words = ["Red,", "please."]
         let result = resolver.resolve(forIndex: 0, sourceWords: words, answer: "Rojo, por favor.")
-        XCTAssertEqual(result.single, ["rojo"])
+        XCTAssertTrue(result.single.contains("rojo"),
+                      "expected `rojo` in single matches; got: \(result.single)")
     }
 
     func test_singletonTranslationIsReturnedDirectly() {
@@ -227,5 +230,80 @@ final class HintResolverTests: XCTestCase {
             HintResolver.lookupKeys(forIndex: 1, sourceWords: words),
             ["do not", "i do not", "do not know", "i do not know"]
         )
+    }
+
+    // MARK: - Spanish stem matching
+
+    func test_spanishStem_unifiesRegularVerbForms() {
+        // Regular -ar verb: comprar / compramos / compre / comprado all
+        // reduce to the same stem.
+        XCTAssertEqual(HintResolver.spanishStem("comprar"), "compr")
+        XCTAssertEqual(HintResolver.spanishStem("compramos"), "compr")
+        XCTAssertEqual(HintResolver.spanishStem("comprado"), "compr")
+    }
+
+    func test_spanishStem_unifiesAdjectiveGenderAndNumber() {
+        // rojo / roja / rojos / rojas → roj
+        XCTAssertEqual(HintResolver.spanishStem("rojo"), "roj")
+        XCTAssertEqual(HintResolver.spanishStem("roja"), "roj")
+        XCTAssertEqual(HintResolver.spanishStem("rojos"), "roj")
+        XCTAssertEqual(HintResolver.spanishStem("rojas"), "roj")
+    }
+
+    func test_spanishStem_normalizesIrregularStemVariants() {
+        // tener family: lemma is "tener" → "ten", but conjugations stem to
+        // "teng" / "tien" / "tuv" which the irregular map collapses to "ten".
+        XCTAssertEqual(HintResolver.spanishStem("tener"), "ten")
+        XCTAssertEqual(HintResolver.spanishStem("tengo"), "ten")
+        XCTAssertEqual(HintResolver.spanishStem("tienes"), "ten")
+        XCTAssertEqual(HintResolver.spanishStem("tiene"), "ten")
+        XCTAssertEqual(HintResolver.spanishStem("tuvo"), "ten")
+        // poder
+        XCTAssertEqual(HintResolver.spanishStem("poder"), "pod")
+        XCTAssertEqual(HintResolver.spanishStem("puedo"), "pod")
+        XCTAssertEqual(HintResolver.spanishStem("pude"), "pod")
+        // querer
+        XCTAssertEqual(HintResolver.spanishStem("querer"), "quer")
+        XCTAssertEqual(HintResolver.spanishStem("quiero"), "quer")
+    }
+
+    func test_spanishStem_handlesShortIrregularSurfaceForms() {
+        // Surface forms with no strippable suffix get directly mapped.
+        XCTAssertEqual(HintResolver.spanishStem("soy"), "ser")
+        XCTAssertEqual(HintResolver.spanishStem("voy"), "ir")
+        XCTAssertEqual(HintResolver.spanishStem("hay"), "hab")
+        XCTAssertEqual(HintResolver.spanishStem("he"), "hab")
+    }
+
+    func test_spanishStem_stripsDiacritics() {
+        // Accent variants normalize to the same stem.
+        XCTAssertEqual(HintResolver.spanishStem("rojó"), "roj")
+        XCTAssertEqual(HintResolver.spanishStem("estás"), HintResolver.spanishStem("estas"))
+    }
+
+    func test_resolveMatchesAcrossInflection() {
+        // "have" returns infinitive `tener`, lemma `haber`, etc. The answer
+        // uses `tengo` (1p sing of tener). Before stem matching, no
+        // candidate matched and the resolver fell back. With stem matching,
+        // `tener` / `tengo` both stem to `ten` and the match goes through.
+        let result = resolver.resolve(
+            forIndex: 1,
+            sourceWords: ["I", "have", "a", "house"],
+            answer: "Tengo una casa."
+        )
+        XCTAssertTrue(result.single.contains("tener"),
+                      "expected `tener` to be matched via stem; got: \(result.single)")
+    }
+
+    func test_resolveMatchesAcrossGenderInflection() {
+        // "red" returns `rojo` (masc) but answer uses `roja` (fem). Stem
+        // matching unifies them via stem `roj`.
+        let result = resolver.resolve(
+            forIndex: 1,
+            sourceWords: ["The", "red", "bicycle"],
+            answer: "La bicicleta roja."
+        )
+        XCTAssertTrue(result.single.contains("rojo") || result.single.contains("roja"),
+                      "expected a `roj*` form to be matched; got: \(result.single)")
     }
 }
