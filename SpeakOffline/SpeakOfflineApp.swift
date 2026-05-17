@@ -11,19 +11,18 @@ struct SpeakOfflineApp: App {
         Task.detached(priority: .utility) {
             _ = VocabularyService.shared
         }
+        // Draw from the full course; level picker is bypassed for now.
+        UserSettings.shared.maxSection = 286
     }
 
     var body: some Scene {
         WindowGroup {
-            if settings.hasCompletedOnboarding {
-                DeckListView()
-                    .environmentObject(settings)
-            } else {
-                NavigationStack {
-                    LevelPickerView(settings: settings, isOnboarding: true) {
-                        // onDone — onboarding sets hasCompletedOnboarding = true
-                    }
-                }
+            NavigationStack {
+                FlashcardView(viewModel: FlashcardViewModel(
+                    deckName: "All cards",
+                    languageCode: "es",
+                    settings: settings
+                ))
             }
         }
     }
