@@ -18,50 +18,48 @@ struct FlashcardView: View {
                         bold: true
                     )
                 }
-                .padding(32)
+                .padding(.horizontal, 32)
+                .padding(.vertical, 20)
                 .frame(maxWidth: .infinity)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal)
 
-                // Answer block — always rendered so the layout doesn't shift
-                // when the answer is revealed; visibility toggled via opacity.
-                VStack(spacing: 4) {
-                    Text(card.front)
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
+                Spacer()
 
-                    if let phonetic = card.phonetic {
-                        Text(phonetic)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                // Show-answer / answer slot. The answer is always rendered so
+                // the slot's size is fixed; the Show Answer button overlays it
+                // until tapped. Tapping fades the button out and the answer in
+                // without moving anything below.
+                ZStack {
+                    VStack(spacing: 4) {
+                        Text(card.front)
+                            .font(.body)
+                            .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
+
+                        if let phonetic = card.phonetic {
+                            Text(phonetic)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .opacity(viewModel.isShowingAnswer ? 1 : 0)
+                    .accessibilityHidden(!viewModel.isShowingAnswer)
+
+                    if !viewModel.isShowingAnswer {
+                        Button("Show Answer") {
+                            withAnimation {
+                                viewModel.showAnswer()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .tint(.secondary)
                     }
                 }
                 .padding(.horizontal)
-                .opacity(viewModel.isShowingAnswer ? 1 : 0)
-                .accessibilityHidden(!viewModel.isShowingAnswer)
-
-                Spacer()
-
-                // Show Answer
-                if !viewModel.isShowingAnswer {
-                    Button("Show Answer") {
-                        withAnimation {
-                            viewModel.showAnswer()
-                        }
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .tint(.secondary)
-                } else {
-                    // Invisible placeholder to keep layout stable
-                    Button("Show Answer") {}
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                        .hidden()
-                }
 
                 // Mic + transcript
                 micSection
@@ -145,30 +143,32 @@ struct FlashcardView: View {
         }
     }
 
-    /// Full-width press-and-hold mic button, styled to match the .bordered
-    /// rating buttons below. Tint flips to red while recording.
+    /// Full-width press-and-hold mic button. Sized prominently and pinned to
+    /// a fixed height so the button never shifts as answers/hints/transcripts
+    /// change above or below it.
     private var micButton: some View {
         let listening = viewModel.speechService.isListening
-        return HStack(spacing: 8) {
+        return HStack(spacing: 12) {
             Image(systemName: "mic.fill")
+                .font(.title)
                 .symbolEffect(.pulse, isActive: listening)
             Text(listening ? "Listening — speak now..." : "Hold to speak")
-                .font(.subheadline)
+                .font(.title3)
                 .bold()
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
+        .frame(height: 88)
+        .padding(.horizontal, 20)
         .foregroundStyle(listening ? Color.white : Color.accentColor)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 14)
                 .fill(listening ? Color.red : Color.accentColor.opacity(0.12))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 14)
                 .stroke(listening ? Color.red.opacity(0.4) : Color.clear, lineWidth: 1)
         )
-        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(RoundedRectangle(cornerRadius: 14))
         .padding(.horizontal)
         // DragGesture(minimumDistance: 0) fires onChanged on the initial
         // touch-down and onEnded on touch-up — i.e. press-and-hold.
