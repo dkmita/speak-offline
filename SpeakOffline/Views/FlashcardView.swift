@@ -7,6 +7,12 @@ struct FlashcardView: View {
     var body: some View {
         VStack(spacing: 24) {
             if let card = viewModel.currentCard {
+                // Card metadata: section name, unit number, CEFR level
+                Text(cardMetadata(card))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+
                 Spacer()
 
                 // Question card
@@ -90,6 +96,22 @@ struct FlashcardView: View {
         .ignoresSafeArea(edges: .bottom)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isShowingAnswer)
         .animation(.easeInOut(duration: 0.25), value: viewModel.speechMatched)
+    }
+
+    // MARK: - Card Metadata
+
+    /// Format: "Traveler 3.5 · A1"
+    /// Maps the legacy (unit, section) fields back to Duolingo's
+    /// section-name + within-section unit numbering.
+    private func cardMetadata(_ card: Card) -> String {
+        let sectionNames = ["Rookie", "Explorer", "Traveler", "Trailblazer",
+                            "Pathfinder", "Wanderer", "Challenger", "Navigator"]
+        // Cumulative unit count before each section (index = section number)
+        let offsets = [0, 0, 8, 34, 62, 114, 164, 214, 250]
+        let s = card.unit
+        guard (1...8).contains(s) else { return card.cefrLevel }
+        let unitWithinSection = card.section - offsets[s]
+        return "\(sectionNames[s - 1]) \(s).\(unitWithinSection) · \(card.cefrLevel)"
     }
 
     // MARK: - Mic Section
