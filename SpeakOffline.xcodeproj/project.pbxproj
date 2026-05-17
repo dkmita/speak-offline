@@ -22,7 +22,9 @@
 		67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BD877A07C1F67989317A6 /* ReviewSession.swift */; };
 		7FD0A21F2674AE0CB035BE6D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4849C3C770319D9E1C5F13D7 /* GRDB */; };
 		88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4672B74B1E0D204E9D234B05 /* FlashcardView.swift */; };
+		A6FC1536198E132E1381548A /* HintResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */; };
 		B340FE9F503CC09AABFC7C24 /* seed.json in Resources */ = {isa = PBXBuildFile; fileRef = 67FFD869E3DC0CE20542FC58 /* seed.json */; };
+		B98068C842F8DD2FDC4D9583 /* HintResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180E9902A4A27ADE61473918 /* HintResolver.swift */; };
 		C8A4FA7F36042EDFF784AD0B /* vocab.json in Resources */ = {isa = PBXBuildFile; fileRef = 1EFD0C23F9DAB8F423E06459 /* vocab.json */; };
 		D034343FA68262EAA35AF365 /* VocabularyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF70F86D8A27EAF28CA9022E /* VocabularyServiceTests.swift */; };
 		D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440052248FBC4ECC81C41EDD /* AppDatabase.swift */; };
@@ -44,6 +46,8 @@
 		022FEFF32CAB57F19272FE49 /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakOfflineApp.swift; sourceTree = "<group>"; };
 		05D37FD47D761A8958DCEA6B /* VocabularyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyService.swift; sourceTree = "<group>"; };
+		0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolverTests.swift; sourceTree = "<group>"; };
+		180E9902A4A27ADE61473918 /* HintResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolver.swift; sourceTree = "<group>"; };
 		1EFD0C23F9DAB8F423E06459 /* vocab.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = vocab.json; sourceTree = "<group>"; };
 		39F237B88728089E391D98F9 /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListView.swift; sourceTree = "<group>"; };
 		3A64870782AD61A8255FCD89 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -153,6 +157,7 @@
 		8F7B188B3F9904F787B00FC3 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				180E9902A4A27ADE61473918 /* HintResolver.swift */,
 				A488FE7AF9F8437987286241 /* SpeechService.swift */,
 				05D37FD47D761A8958DCEA6B /* VocabularyService.swift */,
 			);
@@ -173,6 +178,7 @@
 		AAC2F54D3246971ED9AAD057 /* SpeakOfflineTests */ = {
 			isa = PBXGroup;
 			children = (
+				0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */,
 				98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */,
 				FF70F86D8A27EAF28CA9022E /* VocabularyServiceTests.swift */,
 			);
@@ -276,6 +282,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A6FC1536198E132E1381548A /* HintResolverTests.swift in Sources */,
 				5D4BF4D7DE0C99131CAD9667 /* SpeakOfflineTests.swift in Sources */,
 				D034343FA68262EAA35AF365 /* VocabularyServiceTests.swift in Sources */,
 			);
@@ -292,6 +299,7 @@
 				60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */,
 				88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */,
 				FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */,
+				B98068C842F8DD2FDC4D9583 /* HintResolver.swift in Sources */,
 				3D3E7A38E06891207F21E42A /* LevelPickerView.swift in Sources */,
 				12F3BE51DF5A2B99B1490DAB /* PhraseListView.swift in Sources */,
 				67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */,

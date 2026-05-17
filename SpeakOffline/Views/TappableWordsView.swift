@@ -10,12 +10,10 @@ struct TappableWordsView: View {
 
     @State private var tappedIndex: Int?
 
+    private let resolver = HintResolver()
+
     private var words: [String] {
         text.components(separatedBy: " ").filter { !$0.isEmpty }
-    }
-
-    private var answerWords: [String] {
-        answerText.components(separatedBy: " ").filter { !$0.isEmpty }
     }
 
     var body: some View {
@@ -41,20 +39,8 @@ struct TappableWordsView: View {
         }
     }
 
-    /// Map an English word index to the corresponding Spanish word(s)
-    /// using proportional position mapping
     private func hintFor(index: Int) -> String {
-        let srcCount = words.count
-        let dstCount = answerWords.count
-        guard dstCount > 0, srcCount > 0 else { return "?" }
-
-        // Map source index range to destination index range proportionally
-        let ratio = Double(dstCount) / Double(srcCount)
-        let startIdx = Int((Double(index) * ratio).rounded(.down))
-        let endIdx = Int((Double(index + 1) * ratio).rounded(.up)) - 1
-
-        let clamped = max(0, startIdx)...min(dstCount - 1, max(startIdx, endIdx))
-        return answerWords[clamped].joined(separator: " ")
+        resolver.hint(forIndex: index, sourceWords: words, answer: answerText)
     }
 }
 
