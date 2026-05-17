@@ -9,9 +9,6 @@ struct PhraseMatch: Equatable, Hashable {
 }
 
 /// Structured outcome of a single tap hint lookup.
-///
-/// Carries the single-word translations and any matched multi-word phrases
-/// separately so the view can render each with distinct styling.
 struct HintResult: Equatable {
     /// Translations for the tapped word alone. May be empty.
     let single: [String]
@@ -32,21 +29,9 @@ struct HintResult: Equatable {
 /// Picks Spanish hints for an English word on a flashcard.
 ///
 /// Probes the dictionary with the tapped word alone plus every adjacent
-/// 2- and 3-word window that includes the tap:
-///
-/// ```
-///   single           [i]
-///   left pair    [i-1][i]
-///   right pair       [i][i+1]
-///   left triple  [i-2][i-1][i]
-///   mid  triple  [i-1][i][i+1]
-///   right triple     [i][i+1][i+2]
-/// ```
-///
-/// Single-word lookups can fall back to top candidates when nothing in the
-/// answer matches — informative even without context. Phrase lookups only
-/// contribute when they match the answer; an unrelated phrase that happens to
-/// share a word would be noise.
+/// 2- and 3-word window that includes the tap. Contractions are expanded
+/// before lookup ("don't" → "do not"), so a tap on a contraction looks up
+/// the full form instead of fragments.
 struct HintResolver {
     let vocabulary: VocabularyService
 
@@ -59,12 +44,22 @@ struct HintResolver {
         guard sourceWords.indices.contains(index) else { return .empty }
         let answerTokens = Set(Self.tokenize(answer))
 
-        // Single-word lookup.
-        let singleKey = Self.tokenize(sourceWords[index]).first ?? ""
-        let singleCandidates = singleKey.isEmpty ? [] : vocabulary.spanish(for: singleKey)
+        // Single-word lookup. For contractions this becomes a phrase key
+        // (e.g., "don't" → "do not"); for everything else it's one token.
+        // If the full phrase form isn't in the dictionary, fall back to the
+        // first expanded token alone — usable for taps on contractions like
+        // "can't" where "can not" isn't a dict entry but "can" is.
+        let singleTokens = Self.lookupTokens(forWord: sourceWords[index])
+        let singleKey = singleTokens.joined(separator: " ")
+        var singleCandidates = singleKey.isEmpty ? [] : vocabulary.spanish(for: singleKey)
+        if singleCandidates.isEmpty, singleTokens.count > 1 {
+            singleCandidates = vocabulary.spanish(for: singleTokens[0])
+        }
         let single = pickSingle(from: singleCandidates, answerTokens: answerTokens)
 
-        // Phrase lookups. Spans are inclusive on both ends.
+        // Adjacent-window phrase lookups. Spans are inclusive on both ends
+        // and refer to source-word indices, not token indices — a span of
+        // two source words can become a 3-token key if one is a contraction.
         let probeSpans: [ClosedRange<Int>] = [
             (index - 1)...index,           // left pair
             index...(index + 1),           // right pair
@@ -99,8 +94,8 @@ struct HintResolver {
         guard span.lowerBound >= 0,
               span.upperBound < sourceWords.count
         else { return nil }
-        let tokens = span.compactMap { Self.tokenize(sourceWords[$0]).first }
-        guard tokens.count == span.count else { return nil }
+        let tokens = span.flatMap { Self.lookupTokens(forWord: sourceWords[$0]) }
+        guard !tokens.isEmpty else { return nil }
         let key = tokens.joined(separator: " ")
         let matching = vocabulary.spanish(for: key).filter { matches(candidate: $0, answerTokens: answerTokens) }
         guard !matching.isEmpty else { return nil }
@@ -114,7 +109,86 @@ struct HintResolver {
 
     // MARK: - Static helpers
 
+    /// Common English contractions and their expanded forms. Applied when
+    /// deriving lookup keys so the dictionary sees the full form
+    /// ("don't" → "do not") instead of the tokenize-split artifacts
+    /// ("don" + "t"). Possessives like "mother's" / "Monet's" / "o'clock"
+    /// are deliberately NOT here — they're not contractions and have their
+    /// own dictionary entries (or fall back to the noun stem).
+    static let contractions: [String: String] = [
+        // be / not / will / would
+        "i'm": "i am",
+        "you're": "you are",
+        "he's": "he is",
+        "she's": "she is",
+        "it's": "it is",
+        "we're": "we are",
+        "they're": "they are",
+        "i'll": "i will",
+        "you'll": "you will",
+        "he'll": "he will",
+        "she'll": "she will",
+        "we'll": "we will",
+        "they'll": "they will",
+        "i'd": "i would",
+        "you'd": "you would",
+        "he'd": "he would",
+        "she'd": "she would",
+        "we'd": "we would",
+        "they'd": "they would",
+        "i've": "i have",
+        "you've": "you have",
+        "we've": "we have",
+        "they've": "they have",
+        // negations
+        "don't": "do not",
+        "doesn't": "does not",
+        "didn't": "did not",
+        "isn't": "is not",
+        "aren't": "are not",
+        "wasn't": "was not",
+        "weren't": "were not",
+        "hasn't": "has not",
+        "haven't": "have not",
+        "hadn't": "had not",
+        "won't": "will not",
+        "wouldn't": "would not",
+        "can't": "can not",
+        "couldn't": "could not",
+        "shouldn't": "should not",
+        "mustn't": "must not",
+        // 's / 're / 've / 'll on common subjects
+        "that's": "that is",
+        "there's": "there is",
+        "here's": "here is",
+        "what's": "what is",
+        "where's": "where is",
+        "who's": "who is",
+        "how's": "how is",
+        "let's": "let us",
+        "y'all": "you all"
+    ]
+
+    /// Returns the dictionary-lookup tokens for a single source word.
+    ///
+    /// Known contractions expand to their full form ("don't" → ["do", "not"]).
+    /// Possessives and other apostrophe words drop to their alphanumeric core
+    /// ("mother's" → ["mother"]). Plain words return a single-element array.
+    /// Empty input or pure punctuation returns an empty array.
+    static func lookupTokens(forWord word: String) -> [String] {
+        let lower = word.lowercased()
+        let stripped = lower.trimmingCharacters(
+            in: CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "'")).inverted
+        )
+        if let expanded = contractions[stripped] {
+            return expanded.components(separatedBy: " ").filter { !$0.isEmpty }
+        }
+        return tokenize(word).first.map { [$0] } ?? []
+    }
+
     /// Split on anything that isn't a Unicode letter or digit, lowercased.
+    /// Used for matching tokens in answers and candidate translations; not
+    /// contraction-aware — call `lookupTokens(forWord:)` for source words.
     static func tokenize(_ s: String) -> [String] {
         s.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
@@ -122,10 +196,12 @@ struct HintResolver {
     }
 
     /// The keys probed in the dictionary for a tap at `index`: the word
-    /// alone, then 2- and 3-word adjacent windows. Exposed for tests.
+    /// alone, then 2- and 3-word adjacent windows. Contraction expansion
+    /// happens at the per-word level, so a 2-source-word window with one
+    /// contraction produces a 3-token key. Exposed for tests.
     static func lookupKeys(forIndex index: Int, sourceWords: [String]) -> [String] {
         guard sourceWords.indices.contains(index),
-              let current = tokenize(sourceWords[index]).first
+              !lookupTokens(forWord: sourceWords[index]).isEmpty
         else { return [] }
 
         let probes: [(Int, Int)] = [
@@ -139,13 +215,10 @@ struct HintResolver {
         var keys: [String] = []
         for (lo, hi) in probes {
             guard lo >= 0, hi < sourceWords.count else { continue }
-            let tokens = (lo...hi).compactMap { tokenize(sourceWords[$0]).first }
-            guard tokens.count == hi - lo + 1 else { continue }
+            let tokens = (lo...hi).flatMap { lookupTokens(forWord: sourceWords[$0]) }
+            guard !tokens.isEmpty else { continue }
             keys.append(tokens.joined(separator: " "))
         }
-        // Deduplicate while preserving order — single-word probe overlaps
-        // with degenerate triple at edges in some configurations.
-        _ = current
         var seen = Set<String>()
         return keys.filter { seen.insert($0).inserted }
     }

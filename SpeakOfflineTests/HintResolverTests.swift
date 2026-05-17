@@ -142,4 +142,52 @@ final class HintResolverTests: XCTestCase {
         XCTAssertEqual(HintResolver.tokenize("¿Cómo estás?"), ["cómo", "estás"])
         XCTAssertEqual(HintResolver.tokenize("  "), [])
     }
+
+    // MARK: - Contraction handling
+
+    func test_lookupTokensExpandsKnownContractions() {
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "don't"), ["do", "not"])
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "I'm"), ["i", "am"])
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "you're"), ["you", "are"])
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "can't"), ["can", "not"])
+    }
+
+    func test_singleLookupFallsBackToFirstTokenForContractionsNotInDictAsPhrase() {
+        // If "can not" isn't a phrase entry but "can" is a single-word entry,
+        // a tap on "can't" should still return useful candidates by falling
+        // back to the first expanded token. We don't assert specific Spanish
+        // forms (those depend on dictionary contents); we just assert that
+        // the tap surfaces *something* rather than coming back empty.
+        let result = resolver.resolve(forIndex: 0, sourceWords: ["Can't"], answer: "")
+        XCTAssertFalse(result.single.isEmpty, "expected fallback to single token; got empty")
+    }
+
+    func test_lookupTokensStripsTrailingPunctuationBeforeContractionLookup() {
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "Don't,"), ["do", "not"])
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "I'm!"), ["i", "am"])
+    }
+
+    func test_lookupTokensTreatsPossessivesAsNounStems() {
+        // Possessives are not contractions — drop the trailing 's.
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "mother's"), ["mother"])
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "Monet's"), ["monet"])
+        // o'clock isn't a contraction in our map either — falls to stem.
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "o'clock"), ["o"])
+    }
+
+    func test_lookupTokensOnPlainWordsReturnsSingleStem() {
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "Red,"), ["red"])
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "  Hello!"), ["hello"])
+        XCTAssertEqual(HintResolver.lookupTokens(forWord: "..."), [])
+    }
+
+    func test_lookupKeysExpandsContractionsInAdjacentWindows() {
+        // Tap "don't" in "I don't know" — every window that includes the
+        // contraction expands to "do not".
+        let words = ["I", "don't", "know"]
+        XCTAssertEqual(
+            HintResolver.lookupKeys(forIndex: 1, sourceWords: words),
+            ["do not", "i do not", "do not know", "i do not know"]
+        )
+    }
 }
