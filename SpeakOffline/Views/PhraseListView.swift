@@ -6,46 +6,175 @@ struct PhraseListView: View {
     @StateObject private var viewModel = PhraseListViewModel()
 
     var body: some View {
-        List(viewModel.phrases) { phrase in
-            VStack(alignment: .leading, spacing: 6) {
-                Text(phrase.front)
-                    .font(.subheadline)
-                    .bold()
-                Text(phrase.back)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                HStack(spacing: 12) {
-                    Label(phrase.cefrLevel, systemImage: "graduationcap")
-                    Label("S\(phrase.section)", systemImage: "number")
-                    Label(phrase.easeLabel, systemImage: "brain")
-                    Label("\(phrase.repetitions)x", systemImage: "arrow.counterclockwise")
-                }
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-
-                if phrase.repetitions > 0 {
-                    HStack(spacing: 4) {
-                        ForEach(0..<5, id: \.self) { i in
-                            Circle()
-                                .fill(i < phrase.strengthDots ? Color.green : Color.gray.opacity(0.3))
-                                .frame(width: 6, height: 6)
+        VStack(spacing: 0) {
+            // Status filter bar
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(PhraseFilter.allCases) { filter in
+                        FilterChip(
+                            label: filter.label,
+                            count: viewModel.countFor(filter),
+                            isSelected: viewModel.filter == filter
+                        ) {
+                            viewModel.filter = filter
                         }
-                        Text(phrase.strengthLabel)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
                     }
-                } else {
-                    Text("Not yet reviewed")
-                        .font(.caption2)
-                        .foregroundStyle(.orange)
+                }
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+
+            // Unit filter bar
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    FilterChip(
+                        label: "All Units",
+                        count: viewModel.phrases.count,
+                        isSelected: viewModel.selectedUnit == nil
+                    ) {
+                        viewModel.selectedUnit = nil
+                    }
+                    ForEach(viewModel.availableUnits, id: \.self) { unit in
+                        FilterChip(
+                            label: "Unit \(unit)",
+                            count: viewModel.countForUnit(unit),
+                            isSelected: viewModel.selectedUnit == unit
+                        ) {
+                            viewModel.selectedUnit = unit
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 6)
+            }
+
+            // Section jumper — only when a unit is selected
+            if viewModel.selectedUnit != nil {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(viewModel.availableSections, id: \.self) { section in
+                            Button {
+                                viewModel.scrollToSection = section
+                            } label: {
+                                Text("S\(section)")
+                                    .font(.caption2)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(viewModel.scrollToSection == section
+                                                  ? Color.accentColor.opacity(0.2)
+                                                  : Color.gray.opacity(0.1))
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.bottom, 6)
                 }
             }
-            .padding(.vertical, 2)
+
+            Divider()
+
+            // Phrase list
+            ScrollViewReader { proxy in
+                List(viewModel.phrases) { phrase in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(phrase.front)
+                            .font(.subheadline)
+                            .bold()
+                        Text(phrase.back)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 12) {
+                            Label(phrase.cefrLevel, systemImage: "graduationcap")
+                            Label("S\(phrase.section)", systemImage: "number")
+                            Label(phrase.easeLabel, systemImage: "brain")
+                            Label("\(phrase.repetitions)x", systemImage: "arrow.counterclockwise")
+                        }
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+
+                        HStack(spacing: 4) {
+                            // Show last 5 reviews: green = correct, red = wrong, gray = no review
+                            // Reversed so oldest is on the left, newest on the right
+                            ForEach(0..<5, id: \.self) { i in
+                                let dot = phrase.recentResults[4 - i]
+                                Circle()
+                                    .fill(dot == .correct ? Color.green
+                                          : dot == .wrong ? Color.red
+                                          : Color.gray.opacity(0.3))
+                                    .frame(width: 6, height: 6)
+                            }
+                        }
+                    }
+                    .id(phrase.section)
+                }
+                .onChange(of: viewModel.scrollToSection) { _, section in
+                    if let section {
+                        withAnimation {
+                            proxy.scrollTo(section, anchor: .top)
+                        }
+                    }
+                }
+            }
         }
         .navigationTitle("All Phrases")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $viewModel.searchText, prompt: "Search phrases...")
+    }
+}
+
+// MARK: - Filter Chip
+
+private struct FilterChip: View {
+    let label: String
+    let count: Int
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Text(label)
+                Text("\(count)")
+                    .foregroundStyle(.secondary)
+            }
+            .font(.caption)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.gray.opacity(0.1))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Filter Enum
+
+enum PhraseFilter: String, CaseIterable, Identifiable {
+    case all
+    case seen
+    case correct
+    case wrong
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .all: return "All"
+        case .seen: return "Seen"
+        case .correct: return "Got right"
+        case .wrong: return "Got wrong"
+        }
     }
 }
 
@@ -54,53 +183,116 @@ struct PhraseListView: View {
 @MainActor
 final class PhraseListViewModel: ObservableObject {
     @Published var phrases: [PhraseRow] = []
+    @Published var filter: PhraseFilter = .all {
+        didSet { applyFilters() }
+    }
+    @Published var selectedUnit: Int? = nil {
+        didSet { applyFilters() }
+    }
     @Published var searchText: String = "" {
-        didSet { loadPhrases() }
+        didSet { reload() }
+    }
+    @Published var scrollToSection: Int?
+
+    private var allPhrases: [PhraseRow] = []
+    private let database: AppDatabase
+
+    var availableUnits: [Int] {
+        let units = Set(allPhrases.map(\.unit))
+        return units.sorted()
     }
 
-    private let database: AppDatabase
+    var availableSections: [Int] {
+        let sections = Set(phrases.map(\.section))
+        return sections.sorted()
+    }
+
+    func countForUnit(_ unit: Int) -> Int {
+        let unitFiltered = allPhrases.filter { $0.unit == unit }
+        return unitFiltered.count(where: { matchesStatus($0) })
+    }
+
+    /// Each dot is .correct, .wrong, or .empty (no review yet for that slot)
+    enum DotResult {
+        case correct, wrong, empty
+    }
 
     struct PhraseRow: Identifiable {
         let id: Int64
         let front: String
         let back: String
         let cefrLevel: String
+        let unit: Int
         let section: Int
         let easeFactor: Double
         let repetitions: Int
+        /// Last 5 reviews, most recent first. Padded with .empty if fewer than 5.
+        let recentResults: [DotResult]
+
+        var lastWrong: Bool {
+            recentResults.contains(.wrong)
+        }
 
         var easeLabel: String {
             String(format: "%.1f", easeFactor)
-        }
-
-        // 0-5 dots based on ease factor and repetitions
-        var strengthDots: Int {
-            if repetitions == 0 { return 0 }
-            let score = min(easeFactor * Double(min(repetitions, 5)) / 12.5, 1.0)
-            return max(1, Int(round(score * 5)))
-        }
-
-        var strengthLabel: String {
-            switch strengthDots {
-            case 0: return "New"
-            case 1: return "Weak"
-            case 2: return "Learning"
-            case 3: return "OK"
-            case 4: return "Good"
-            case 5: return "Strong"
-            default: return ""
-            }
         }
     }
 
     init(database: AppDatabase = .shared) {
         self.database = database
-        loadPhrases()
+        reload()
     }
 
-    func loadPhrases() {
+    func countFor(_ filter: PhraseFilter) -> Int {
+        allPhrases.count(where: { matchesStatus($0, filter: filter) })
+    }
+
+    private func matchesStatus(_ phrase: PhraseRow, filter: PhraseFilter? = nil) -> Bool {
+        let f = filter ?? self.filter
+        let hasBeenSeen = phrase.repetitions > 0 || phrase.lastWrong
+        switch f {
+        case .all: return true
+        case .seen: return hasBeenSeen
+        case .correct: return hasBeenSeen && !phrase.lastWrong
+        case .wrong: return phrase.lastWrong
+        }
+    }
+
+    private func applyFilters() {
+        var result = allPhrases
+
+        // Status filter
+        result = result.filter { matchesStatus($0) }
+
+        // Unit filter
+        if let unit = selectedUnit {
+            result = result.filter { $0.unit == unit }
+        }
+
+        phrases = result
+    }
+
+    private func reload() {
         do {
-            phrases = try database.dbQueue.read { db in
+            allPhrases = try database.dbQueue.read { db in
+                // Fetch last 5 reviews per card, most recent first
+                let rows = try Row.fetchAll(db, sql: """
+                    SELECT cardId, quality FROM (
+                        SELECT cardId, quality,
+                               ROW_NUMBER() OVER (PARTITION BY cardId ORDER BY reviewedAt DESC) as rn
+                        FROM reviewSession
+                    ) WHERE rn <= 5
+                    ORDER BY cardId, rn ASC
+                """)
+
+                var reviewMap: [Int64: [DotResult]] = [:]
+                for row in rows {
+                    let cardId: Int64 = row["cardId"]
+                    let quality: Int = row["quality"]
+                    let result: DotResult = quality >= 3 ? .correct : .wrong
+                    reviewMap[cardId, default: []].append(result)
+                }
+
                 var query = Card.order(Column("section").asc, Column("id").asc)
 
                 if !searchText.isEmpty {
@@ -112,18 +304,30 @@ final class PhraseListViewModel: ObservableObject {
 
                 return try query.fetchAll(db).compactMap { card -> PhraseRow? in
                     guard let id = card.id else { return nil }
+
+                    // Pad to 5 dots: recent results + empty slots
+                    var results = reviewMap[id] ?? []
+                    while results.count < 5 {
+                        results.append(.empty)
+                    }
+
                     return PhraseRow(
                         id: id,
                         front: card.front,
                         back: card.back,
                         cefrLevel: card.cefrLevel,
+                        unit: card.unit,
                         section: card.section,
                         easeFactor: card.easeFactor,
-                        repetitions: card.repetitions
+                        repetitions: card.repetitions,
+                        recentResults: results
                     )
                 }
             }
+
+            applyFilters()
         } catch {
+            allPhrases = []
             phrases = []
         }
     }
