@@ -25,5 +25,30 @@
   "you are wrong": ["estás equivocado", "estás equivocada"],
   "let us go": ["vamos"],
   "what is up": ["qué pasa", "qué tal"],
-  "see you tomorrow": ["hasta mañana"]
+  "see you tomorrow": ["hasta mañana"],
+
+  "be patient": ["ten paciencia", "tener paciencia"],
+
+  "was scared": ["tenía miedo"],
+  "very scared": ["mucho miedo"],
+  "was very scared": ["tenía mucho miedo"],
+  "i was scared": ["tenía miedo"],
+  "i was very scared": ["tenía mucho miedo"],
+
+  "pouring": ["lloviendo", "lloviendo a cántaros"],
+  "is pouring": ["está lloviendo"],
+  "pouring rain": ["lloviendo a cántaros"],
+  "it is pouring": ["está lloviendo"],
+  "it is pouring rain": ["está lloviendo a cántaros"],
+
+  "i am sorry": ["lo siento", "perdón"],
+  "i am so sorry": ["lo siento mucho"],
+  "so sorry": ["siento mucho"],
+  "did not mean to": ["no era mi intención", "no quería"],
+  "i did not mean to": ["no era mi intención"],
+  "mean to": ["intención"],
+
+  "may i": ["puedo"],
+  "come in": ["entrar", "pasar"],
+  "may i come in": ["puedo entrar", "puedo pasar"]
 }
