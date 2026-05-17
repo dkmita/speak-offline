@@ -33,14 +33,6 @@ final class FlashcardViewModel: ObservableObject {
             self?.objectWillChange.send()
         }
 
-        speechService.onPartialResult = { [weak self] transcript in
-            self?.checkAnswer(transcript: transcript, isFinal: false)
-        }
-
-        speechService.onFinished = { [weak self] transcript in
-            self?.checkAnswer(transcript: transcript, isFinal: true)
-        }
-
         pickNextCard()
     }
 
@@ -138,20 +130,28 @@ final class FlashcardViewModel: ObservableObject {
         isShowingAnswer = true
     }
 
-    func toggleMic() async {
-        if speechService.isListening {
-            speechService.stopListening()
-        } else {
-            speechMatched = nil
-            // Provide the expected phrase as a hint to improve recognition
-            if let card = currentCard {
-                let words = card.front.components(separatedBy: " ").filter { !$0.isEmpty }
-                speechService.contextualStrings = [card.front] + words
-            }
-            let permitted = await speechService.requestPermissions()
-            guard permitted else { return }
-            speechService.startListening()
+    /// Push-to-talk: invoked when the mic button is pressed down. Clears any
+    /// previous transcript/match state, then starts listening. The answer is
+    /// not evaluated until `endPushToTalk()` is called on release.
+    func startPushToTalk() async {
+        speechMatched = nil
+        speechService.transcript = ""
+        if let card = currentCard {
+            let words = card.front.components(separatedBy: " ").filter { !$0.isEmpty }
+            speechService.contextualStrings = [card.front] + words
         }
+        let permitted = await speechService.requestPermissions()
+        guard permitted else { return }
+        speechService.startListening()
+    }
+
+    /// Push-to-talk: invoked when the mic button is released. Stops listening
+    /// and evaluates whatever the recognizer produced.
+    func endPushToTalk() {
+        guard speechService.isListening else { return }
+        let finalTranscript = speechService.transcript
+        speechService.stopListening()
+        checkAnswer(transcript: finalTranscript, isFinal: true)
     }
 
     private func checkAnswer(transcript: String, isFinal: Bool) {

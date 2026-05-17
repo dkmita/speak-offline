@@ -7,20 +7,16 @@ final class SpeechService: ObservableObject {
     @Published var transcript = ""
     @Published var error: String?
 
-    /// Called on each partial transcript update (for live matching)
+    /// Called on each partial transcript update (for live display)
     var onPartialResult: ((String) -> Void)?
-    /// Called when listening stops (either from silence timeout or final result)
-    var onFinished: ((String) -> Void)?
     /// Contextual phrases to hint the recognizer — set before calling startListening()
     var contextualStrings: [String] = []
 
     private var audioEngine: AVAudioEngine?
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    private var silenceTimer: Timer?
 
     private let speechRecognizer: SFSpeechRecognizer?
-    private let silenceTimeout: TimeInterval = 2.0
 
     init(locale: Locale = Locale(identifier: "es-ES")) {
         self.speechRecognizer = SFSpeechRecognizer(locale: locale)
@@ -123,17 +119,12 @@ final class SpeechService: ObservableObject {
                     if let result {
                         self.transcript = result.bestTranscription.formattedString
                         self.onPartialResult?(self.transcript)
-                        self.resetSilenceTimer()
-
-                        if result.isFinal {
-                            self.finishListening()
-                        }
                     }
 
                     if let error, self.isListening {
                         print("[SpeakOffline] Recognition error: \(error)")
                         self.error = error.localizedDescription
-                        self.finishListening()
+                        self.stopListening()
                     }
                 }
             }
@@ -145,9 +136,6 @@ final class SpeechService: ObservableObject {
     }
 
     func stopListening() {
-        silenceTimer?.invalidate()
-        silenceTimer = nil
-
         audioEngine?.stop()
         audioEngine?.inputNode.removeTap(onBus: 0)
         recognitionRequest?.endAudio()
@@ -159,33 +147,5 @@ final class SpeechService: ObservableObject {
         isListening = false
 
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-    }
-
-    private func finishListening() {
-        let finalTranscript = transcript
-        stopListening()
-        if !finalTranscript.isEmpty {
-            print("[SpeakOffline] Final transcript: \(finalTranscript)")
-            onFinished?(finalTranscript)
-        }
-    }
-
-    private func resetSilenceTimer() {
-        silenceTimer?.invalidate()
-        silenceTimer = Timer.scheduledTimer(withTimeInterval: silenceTimeout, repeats: false) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self, self.isListening else { return }
-                print("[SpeakOffline] Silence timeout — stopping")
-                self.finishListening()
-            }
-        }
-    }
-
-    func toggle() {
-        if isListening {
-            stopListening()
-        } else {
-            startListening()
-        }
     }
 }

@@ -2,13 +2,14 @@ import SwiftUI
 
 struct FlashcardView: View {
     @StateObject var viewModel: FlashcardViewModel
+    @State private var isMicPressed = false
 
     var body: some View {
         VStack(spacing: 24) {
             if let card = viewModel.currentCard {
                 Spacer()
 
-                // Card
+                // Question card
                 VStack(spacing: 16) {
                     TappableWordsView(
                         text: card.back,
@@ -16,30 +17,31 @@ struct FlashcardView: View {
                         font: .title3,
                         bold: true
                     )
-
-                    if viewModel.isShowingAnswer {
-                        Divider()
-                            .padding(.horizontal, 40)
-
-                        Text(card.front)
-                            .font(.body)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .transition(.opacity)
-
-                        if let phonetic = card.phonetic {
-                            Text(phonetic)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
                 }
                 .padding(32)
                 .frame(maxWidth: .infinity)
                 .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal)
+
+                // Answer block — always rendered so the layout doesn't shift
+                // when the answer is revealed; visibility toggled via opacity.
+                VStack(spacing: 4) {
+                    Text(card.front)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if let phonetic = card.phonetic {
+                        Text(phonetic)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(.horizontal)
+                .opacity(viewModel.isShowingAnswer ? 1 : 0)
+                .accessibilityHidden(!viewModel.isShowingAnswer)
 
                 Spacer()
 
@@ -106,28 +108,40 @@ struct FlashcardView: View {
 
     private var micSection: some View {
         VStack(spacing: 8) {
-            Button {
-                Task { await viewModel.toggleMic() }
-            } label: {
-                Image(systemName: viewModel.speechService.isListening ? "mic.fill" : "mic.fill")
-                    .font(.title)
-                    .symbolEffect(.pulse, isActive: viewModel.speechService.isListening)
-                    .foregroundStyle(.white)
-                    .frame(width: 64, height: 64)
-                    .background(
-                        Circle()
-                            .fill(viewModel.speechService.isListening ? Color.red : Color.accentColor)
-                    )
-                    .overlay(
-                        Circle()
-                            .stroke(viewModel.speechService.isListening ? Color.red.opacity(0.4) : Color.clear, lineWidth: 3)
-                            .scaleEffect(viewModel.speechService.isListening ? 1.4 : 1.0)
-                            .opacity(viewModel.speechService.isListening ? 0 : 1)
-                            .animation(.easeOut(duration: 1).repeatForever(autoreverses: false), value: viewModel.speechService.isListening)
-                    )
-                    .shadow(color: viewModel.speechService.isListening ? .red.opacity(0.4) : .accentColor.opacity(0.3), radius: 8)
-            }
-            .accessibilityLabel(viewModel.speechService.isListening ? "Stop recording" : "Start recording")
+            Image(systemName: "mic.fill")
+                .font(.title)
+                .symbolEffect(.pulse, isActive: viewModel.speechService.isListening)
+                .foregroundStyle(.white)
+                .frame(width: 64, height: 64)
+                .background(
+                    Circle()
+                        .fill(viewModel.speechService.isListening ? Color.red : Color.accentColor)
+                )
+                .overlay(
+                    Circle()
+                        .stroke(viewModel.speechService.isListening ? Color.red.opacity(0.4) : Color.clear, lineWidth: 3)
+                        .scaleEffect(viewModel.speechService.isListening ? 1.4 : 1.0)
+                        .opacity(viewModel.speechService.isListening ? 0 : 1)
+                        .animation(.easeOut(duration: 1).repeatForever(autoreverses: false), value: viewModel.speechService.isListening)
+                )
+                .shadow(color: viewModel.speechService.isListening ? .red.opacity(0.4) : .accentColor.opacity(0.3), radius: 8)
+                .contentShape(Circle())
+                // DragGesture(minimumDistance: 0) fires onChanged on the initial
+                // touch-down and onEnded on touch-up — i.e. press-and-hold.
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { _ in
+                            guard !isMicPressed else { return }
+                            isMicPressed = true
+                            Task { await viewModel.startPushToTalk() }
+                        }
+                        .onEnded { _ in
+                            isMicPressed = false
+                            viewModel.endPushToTalk()
+                        }
+                )
+                .accessibilityLabel("Hold to record")
+                .accessibilityAddTraits(.isButton)
 
             if !viewModel.speechService.transcript.isEmpty {
                 HStack(spacing: 6) {
@@ -158,7 +172,7 @@ struct FlashcardView: View {
                     .font(.caption)
                     .foregroundStyle(.red)
             } else {
-                Text("Tap mic to speak")
+                Text("Hold mic to speak")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
