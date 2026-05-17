@@ -74,6 +74,40 @@ final class HintResolverTests: XCTestCase {
         XCTAssertEqual(hint, "?")
     }
 
+    // MARK: - Multi-word phrase lookups
+
+    func test_tappingLeftWordOfPhraseSurfacesPhraseHint() {
+        // Tap "good" in "Good morning, María". Single lookup of "good" returns
+        // [bien, buen, buena, buenas]; the right-pair lookup of "good morning"
+        // adds "buenos días". The answer is "Buenos días, María." so the
+        // phrase translation matches and should appear alongside the single-
+        // word candidates.
+        let words = ["Good", "morning,", "María"]
+        let hint = resolver.hint(forIndex: 0, sourceWords: words, answer: "Buenos días, María.")
+        XCTAssertTrue(hint.contains("buenos días"), "expected phrase match in hint, got: \(hint)")
+    }
+
+    func test_tappingRightWordOfPhraseSurfacesPhraseHint() {
+        // Tap "morning" in the same sentence. Single lookup returns [mañana];
+        // the left-pair lookup of "good morning" adds "buenos días". Answer
+        // disambiguation again prefers the phrase form.
+        let words = ["Good", "morning,", "María"]
+        let hint = resolver.hint(forIndex: 1, sourceWords: words, answer: "Buenos días, María.")
+        XCTAssertTrue(hint.contains("buenos días"), "expected phrase match in hint, got: \(hint)")
+    }
+
+    func test_lookupKeys_returnsSingleAndAdjacentPairs() {
+        let words = ["Good", "morning,", "María"]
+        XCTAssertEqual(HintResolver.lookupKeys(forIndex: 0, sourceWords: words), ["good", "good morning"])
+        XCTAssertEqual(HintResolver.lookupKeys(forIndex: 1, sourceWords: words), ["morning", "good morning", "morning maría"])
+        XCTAssertEqual(HintResolver.lookupKeys(forIndex: 2, sourceWords: words), ["maría", "morning maría"])
+    }
+
+    func test_lookupKeys_outOfBoundsReturnsEmpty() {
+        XCTAssertEqual(HintResolver.lookupKeys(forIndex: 5, sourceWords: ["a", "b"]), [])
+        XCTAssertEqual(HintResolver.lookupKeys(forIndex: -1, sourceWords: ["a"]), [])
+    }
+
     // MARK: - Tokenize helper
 
     func test_tokenizeStripsPunctuationAndLowercases() {
