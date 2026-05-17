@@ -91,8 +91,6 @@ struct FlashcardView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle(viewModel.deckName)
-        .navigationBarTitleDisplayMode(.inline)
         .ignoresSafeArea(edges: .bottom)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isShowingAnswer)
         .animation(.easeInOut(duration: 0.25), value: viewModel.speechMatched)

@@ -17,13 +17,11 @@ struct SpeakOfflineApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                FlashcardView(viewModel: FlashcardViewModel(
-                    deckName: "All cards",
-                    languageCode: "es",
-                    settings: settings
-                ))
-            }
+            FlashcardView(viewModel: FlashcardViewModel(
+                deckName: "All cards",
+                languageCode: "es",
+                settings: settings
+            ))
         }
     }
 }
