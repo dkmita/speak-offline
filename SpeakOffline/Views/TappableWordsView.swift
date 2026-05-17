@@ -440,7 +440,11 @@ struct TappableHintsLayout: Layout {
             cursorY = wordY + wordHeight + rowSpacing
         }
 
-        let totalHeight = max(cursorY - rowSpacing, 0)
+        // Mirror the reserved hint area above the first row with the same
+        // amount of empty space below the last row, so the whole block sits
+        // vertically symmetric inside its container.
+        let bottomPadding = reservedHintHeight + cellSpacing
+        let totalHeight = max(cursorY - rowSpacing, 0) + bottomPadding
         let totalWidth: CGFloat
         if maxWidth.isFinite {
             totalWidth = maxWidth

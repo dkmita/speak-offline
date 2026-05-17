@@ -108,40 +108,7 @@ struct FlashcardView: View {
 
     private var micSection: some View {
         VStack(spacing: 8) {
-            Image(systemName: "mic.fill")
-                .font(.title)
-                .symbolEffect(.pulse, isActive: viewModel.speechService.isListening)
-                .foregroundStyle(.white)
-                .frame(width: 64, height: 64)
-                .background(
-                    Circle()
-                        .fill(viewModel.speechService.isListening ? Color.red : Color.accentColor)
-                )
-                .overlay(
-                    Circle()
-                        .stroke(viewModel.speechService.isListening ? Color.red.opacity(0.4) : Color.clear, lineWidth: 3)
-                        .scaleEffect(viewModel.speechService.isListening ? 1.4 : 1.0)
-                        .opacity(viewModel.speechService.isListening ? 0 : 1)
-                        .animation(.easeOut(duration: 1).repeatForever(autoreverses: false), value: viewModel.speechService.isListening)
-                )
-                .shadow(color: viewModel.speechService.isListening ? .red.opacity(0.4) : .accentColor.opacity(0.3), radius: 8)
-                .contentShape(Circle())
-                // DragGesture(minimumDistance: 0) fires onChanged on the initial
-                // touch-down and onEnded on touch-up — i.e. press-and-hold.
-                .gesture(
-                    DragGesture(minimumDistance: 0)
-                        .onChanged { _ in
-                            guard !isMicPressed else { return }
-                            isMicPressed = true
-                            Task { await viewModel.startPushToTalk() }
-                        }
-                        .onEnded { _ in
-                            isMicPressed = false
-                            viewModel.endPushToTalk()
-                        }
-                )
-                .accessibilityLabel("Hold to record")
-                .accessibilityAddTraits(.isButton)
+            micButton
 
             if !viewModel.speechService.transcript.isEmpty {
                 HStack(spacing: 6) {
@@ -152,6 +119,7 @@ struct FlashcardView: View {
                     Text(viewModel.coloredTranscript())
                         .font(.body)
                         .italic()
+                    playbackButton
                 }
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -163,20 +131,77 @@ struct FlashcardView: View {
                         .font(.caption)
                         .foregroundStyle(.yellow)
                 }
-            } else if viewModel.speechService.isListening {
-                Text("Listening — speak now...")
-                    .font(.caption)
-                    .foregroundStyle(.orange)
+            } else if viewModel.speechService.lastRecordingURL != nil
+                && !viewModel.speechService.isListening {
+                // Recorded audio but nothing recognized — let the user still
+                // hear themselves.
+                playbackButton
+                    .transition(.opacity)
             } else if let error = viewModel.speechService.error {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
-            } else {
-                Text("Hold mic to speak")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
             }
         }
+    }
+
+    /// Full-width press-and-hold mic button, styled to match the .bordered
+    /// rating buttons below. Tint flips to red while recording.
+    private var micButton: some View {
+        let listening = viewModel.speechService.isListening
+        return HStack(spacing: 8) {
+            Image(systemName: "mic.fill")
+                .symbolEffect(.pulse, isActive: listening)
+            Text(listening ? "Listening — speak now..." : "Hold to speak")
+                .font(.subheadline)
+                .bold()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .foregroundStyle(listening ? Color.white : Color.accentColor)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(listening ? Color.red : Color.accentColor.opacity(0.12))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(listening ? Color.red.opacity(0.4) : Color.clear, lineWidth: 1)
+        )
+        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal)
+        // DragGesture(minimumDistance: 0) fires onChanged on the initial
+        // touch-down and onEnded on touch-up — i.e. press-and-hold.
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    guard !isMicPressed else { return }
+                    isMicPressed = true
+                    Task { await viewModel.startPushToTalk() }
+                }
+                .onEnded { _ in
+                    isMicPressed = false
+                    viewModel.endPushToTalk()
+                }
+        )
+        .accessibilityLabel("Hold to record")
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var playbackButton: some View {
+        Button {
+            if viewModel.speechService.isPlayingBack {
+                viewModel.speechService.stopPlayback()
+            } else {
+                viewModel.speechService.playLastRecording()
+            }
+        } label: {
+            Image(systemName: viewModel.speechService.isPlayingBack ? "stop.circle.fill" : "play.circle.fill")
+                .font(.title3)
+                .foregroundStyle(Color.accentColor)
+                .symbolEffect(.pulse, isActive: viewModel.speechService.isPlayingBack)
+        }
+        .accessibilityLabel(viewModel.speechService.isPlayingBack ? "Stop playback" : "Play your recording")
     }
 
     // MARK: - Rating Buttons

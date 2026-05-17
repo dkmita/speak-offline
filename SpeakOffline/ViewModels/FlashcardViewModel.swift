@@ -120,6 +120,7 @@ final class FlashcardViewModel: ObservableObject {
             speechMatched = nil
             speechService.stopListening()
             speechService.transcript = ""
+            speechService.clearLastRecording()
 
         } catch {
             currentCard = nil

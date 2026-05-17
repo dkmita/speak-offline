@@ -2,10 +2,16 @@ import AVFoundation
 import Speech
 
 @MainActor
-final class SpeechService: ObservableObject {
+final class SpeechService: NSObject, ObservableObject {
     @Published var isListening = false
     @Published var transcript = ""
     @Published var error: String?
+    /// URL of the most recent recording on disk (kept in the temp directory).
+    /// Nil until the user records once; updated each time `startListening`
+    /// successfully opens a recording file.
+    @Published var lastRecordingURL: URL?
+    /// True while the most recent recording is being played back.
+    @Published var isPlayingBack = false
 
     /// Called on each partial transcript update (for live display)
     var onPartialResult: ((String) -> Void)?
@@ -15,11 +21,14 @@ final class SpeechService: ObservableObject {
     private var audioEngine: AVAudioEngine?
     private var recognitionTask: SFSpeechRecognitionTask?
     private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var audioFile: AVAudioFile?
+    private var audioPlayer: AVAudioPlayer?
 
     private let speechRecognizer: SFSpeechRecognizer?
 
     init(locale: Locale = Locale(identifier: "es-ES")) {
         self.speechRecognizer = SFSpeechRecognizer(locale: locale)
+        super.init()
     }
 
     var isAvailable: Bool {
@@ -100,8 +109,21 @@ final class SpeechService: ObservableObject {
             let inputNode = audioEngine.inputNode
             let recordingFormat = inputNode.outputFormat(forBus: 0)
 
+            // Open an audio file alongside speech recognition so the user
+            // can play back their own attempt. Recording stays in the temp
+            // directory and never leaves the device.
+            let recordingURL = FileManager.default.temporaryDirectory
+                .appendingPathComponent("answer-\(UUID().uuidString).caf")
+            let writeFile = try? AVAudioFile(
+                forWriting: recordingURL,
+                settings: recordingFormat.settings
+            )
+            self.audioFile = writeFile
+            self.lastRecordingURL = writeFile != nil ? recordingURL : nil
+
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
                 request.append(buffer)
+                try? writeFile?.write(from: buffer)
             }
 
             audioEngine.prepare()
@@ -144,8 +166,58 @@ final class SpeechService: ObservableObject {
         audioEngine = nil
         recognitionRequest = nil
         recognitionTask = nil
+        // Releasing the AVAudioFile flushes and closes the underlying file
+        // so the recording is ready for playback.
+        audioFile = nil
         isListening = false
 
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+
+    // MARK: - Playback
+
+    /// Play back the most recent recording. Stops any in-progress playback first.
+    func playLastRecording() {
+        guard let url = lastRecordingURL else { return }
+        audioPlayer?.stop()
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.delegate = self
+            audioPlayer = player
+            player.play()
+            isPlayingBack = true
+        } catch {
+            print("[SpeakOffline] Playback failed: \(error)")
+            self.error = "Playback failed"
+        }
+    }
+
+    func stopPlayback() {
+        audioPlayer?.stop()
+        audioPlayer = nil
+        isPlayingBack = false
+    }
+
+    /// Drop the cached recording — call when moving to a new card so the
+    /// playback button doesn't stick around for stale audio.
+    func clearLastRecording() {
+        stopPlayback()
+        lastRecordingURL = nil
+    }
+}
+
+extension SpeechService: AVAudioPlayerDelegate {
+    nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        Task { @MainActor in
+            self.isPlayingBack = false
+        }
+    }
+
+    nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
+        Task { @MainActor in
+            self.isPlayingBack = false
+        }
     }
 }
