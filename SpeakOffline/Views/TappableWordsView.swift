@@ -51,32 +51,26 @@ struct TappableWordsView: View {
         let result = hintResult
 
         if index == tapped {
-            // Build the stacked label set for the tapped word.
+            // Stack labels: single-word translation on top (or fallback if
+            // the dictionary doesn't know the word), then one label per
+            // matched phrase in resolver order (left-pair, right-pair,
+            // left-triple, mid-triple, right-triple).
             var labels: [HintLabel] = []
-
-            // Single-word hint (or the proportional fallback) on top, styled
-            // as the primary translation.
             if !result.single.isEmpty {
                 labels.append(.init(text: result.single.joined(separator: " / "), kind: .single))
             } else if let fb = result.fallback {
                 labels.append(.init(text: fb, kind: .single))
             }
-            if !result.leftPair.isEmpty {
-                labels.append(.init(text: result.leftPair.joined(separator: " / "), kind: .phrase))
-            }
-            if !result.rightPair.isEmpty {
-                labels.append(.init(text: result.rightPair.joined(separator: " / "), kind: .phrase))
+            for phrase in result.phrases {
+                labels.append(.init(text: phrase.translations.joined(separator: " / "), kind: .phrase))
             }
             return .tapped(labels: labels)
         }
 
-        // Neighbor of the tapped word that's part of an active phrase. The
-        // phrase translation itself is shown above the tapped word; here we
-        // just underline the neighbor so the span is visible.
-        if index == tapped - 1, !result.leftPair.isEmpty {
-            return .phraseNeighbor
-        }
-        if index == tapped + 1, !result.rightPair.isEmpty {
+        // Any non-tapped word that participates in an active phrase span
+        // gets a phrase-color underline so the span is visible. The phrase
+        // translation itself is shown above the tapped word.
+        if result.phrases.contains(where: { $0.span.contains(index) }) {
             return .phraseNeighbor
         }
         return .idle

@@ -1,46 +1,58 @@
 import Foundation
 
+/// A multi-word phrase that the dictionary matched against this card's answer.
+struct PhraseMatch: Equatable, Hashable {
+    /// Spanish translations of the phrase.
+    let translations: [String]
+    /// Source-word indices that the phrase spans, inclusive.
+    let span: ClosedRange<Int>
+}
+
 /// Structured outcome of a single tap hint lookup.
 ///
-/// Carries the three independent lookups (single word, left phrase, right
-/// phrase) separately so the view can render each with distinct styling.
-/// The `fallback` field is only populated when every dictionary path is
-/// empty — it preserves the legacy proportional-position guess for words the
+/// Carries the single-word translations and any matched multi-word phrases
+/// separately so the view can render each with distinct styling. The
+/// `fallback` field is only populated when every dictionary path is empty —
+/// it preserves the legacy proportional-position guess for words the
 /// dictionary doesn't know.
 struct HintResult: Equatable {
     /// Translations for the tapped word alone. May be empty.
     let single: [String]
 
-    /// Phrase translation when `[tapped-1] [tapped]` matches the card's answer.
-    let leftPair: [String]
-
-    /// Phrase translation when `[tapped] [tapped+1]` matches the card's answer.
-    let rightPair: [String]
+    /// Matched multi-word phrases that involve the tapped word. Ordered by
+    /// the resolver's probe order: 2-word phrases first (left-pair then
+    /// right-pair), then 3-word phrases (left-triple, middle-triple,
+    /// right-triple).
+    let phrases: [PhraseMatch]
 
     /// Proportional-position guess. Set only when every other field is empty.
     let fallback: String?
 
     var isEmpty: Bool {
-        single.isEmpty && leftPair.isEmpty && rightPair.isEmpty && fallback == nil
+        single.isEmpty && phrases.isEmpty && fallback == nil
     }
 
-    static let empty = HintResult(single: [], leftPair: [], rightPair: [], fallback: nil)
+    static let empty = HintResult(single: [], phrases: [], fallback: nil)
 }
 
 /// Picks Spanish hints for an English word on a flashcard.
 ///
-/// Probes three dictionary entries per tap — the word alone, the two-word
-/// phrase ending at the tap, and the two-word phrase starting at the tap —
-/// so the user sees both single-word and adjacent-phrase translations when
-/// they apply.
+/// Probes the dictionary with the tapped word alone plus every adjacent
+/// 2- and 3-word window that includes the tap:
 ///
-/// Disambiguation: when the dictionary returns multiple candidates for a
-/// lookup, we prefer those whose tokens appear in this card's answer (e.g.
-/// `"red"` → `[roja, rojas, rojo]` collapses to `roja` when the answer is
-/// "La bicicleta roja"). For single-word lookups with no answer match we
-/// still return the top few candidates — informative even without context.
-/// Phrase lookups only contribute when they match the answer; an unrelated
-/// phrase that happens to share a word would be noise.
+/// ```
+///   single           [i]
+///   left pair    [i-1][i]
+///   right pair       [i][i+1]
+///   left triple  [i-2][i-1][i]
+///   mid  triple  [i-1][i][i+1]
+///   right triple     [i][i+1][i+2]
+/// ```
+///
+/// Single-word lookups can fall back to top candidates when nothing in the
+/// answer matches — informative even without context. Phrase lookups only
+/// contribute when they match the answer; an unrelated phrase that happens to
+/// share a word would be noise.
 struct HintResolver {
     let vocabulary: VocabularyService
 
@@ -58,28 +70,28 @@ struct HintResolver {
         let singleCandidates = singleKey.isEmpty ? [] : vocabulary.spanish(for: singleKey)
         let single = pickSingle(from: singleCandidates, answerTokens: answerTokens)
 
-        // Phrase lookups. Only return candidates that match the answer —
-        // an unrelated phrase sharing a word is noise.
-        let leftPair = pickPhrase(
-            leftIndex: index - 1,
-            rightIndex: index,
-            sourceWords: sourceWords,
-            answerTokens: answerTokens
-        )
-        let rightPair = pickPhrase(
-            leftIndex: index,
-            rightIndex: index + 1,
-            sourceWords: sourceWords,
-            answerTokens: answerTokens
-        )
+        // Phrase lookups. Spans are inclusive on both ends.
+        let probeSpans: [ClosedRange<Int>] = [
+            (index - 1)...index,           // left pair
+            index...(index + 1),           // right pair
+            (index - 2)...index,           // left triple
+            (index - 1)...(index + 1),     // mid triple
+            index...(index + 2)            // right triple
+        ]
+        var phrases: [PhraseMatch] = []
+        for span in probeSpans {
+            if let match = phraseMatch(forSpan: span, sourceWords: sourceWords, answerTokens: answerTokens) {
+                phrases.append(match)
+            }
+        }
 
         let fallback: String?
-        if single.isEmpty && leftPair.isEmpty && rightPair.isEmpty {
+        if single.isEmpty && phrases.isEmpty {
             fallback = Self.proportionalHint(index: index, sourceWords: sourceWords, answer: answer)
         } else {
             fallback = nil
         }
-        return HintResult(single: single, leftPair: leftPair, rightPair: rightPair, fallback: fallback)
+        return HintResult(single: single, phrases: phrases, fallback: fallback)
     }
 
     private func pickSingle(from candidates: [String], answerTokens: Set<String>) -> [String] {
@@ -89,20 +101,22 @@ struct HintResolver {
         return Array(candidates.prefix(3))
     }
 
-    private func pickPhrase(
-        leftIndex: Int,
-        rightIndex: Int,
+    /// Look up the phrase covering `span`, returning a `PhraseMatch` only if
+    /// at least one translation's tokens all appear in the answer.
+    private func phraseMatch(
+        forSpan span: ClosedRange<Int>,
         sourceWords: [String],
         answerTokens: Set<String>
-    ) -> [String] {
-        guard sourceWords.indices.contains(leftIndex),
-              sourceWords.indices.contains(rightIndex),
-              let left = Self.tokenize(sourceWords[leftIndex]).first,
-              let right = Self.tokenize(sourceWords[rightIndex]).first
-        else { return [] }
-        let key = "\(left) \(right)"
-        let candidates = vocabulary.spanish(for: key)
-        return candidates.filter { matches(candidate: $0, answerTokens: answerTokens) }
+    ) -> PhraseMatch? {
+        guard span.lowerBound >= 0,
+              span.upperBound < sourceWords.count
+        else { return nil }
+        let tokens = span.compactMap { Self.tokenize(sourceWords[$0]).first }
+        guard tokens.count == span.count else { return nil }
+        let key = tokens.joined(separator: " ")
+        let matching = vocabulary.spanish(for: key).filter { matches(candidate: $0, answerTokens: answerTokens) }
+        guard !matching.isEmpty else { return nil }
+        return PhraseMatch(translations: matching, span: span)
     }
 
     private func matches(candidate: String, answerTokens: Set<String>) -> Bool {
@@ -134,23 +148,32 @@ struct HintResolver {
         return answerWords[clamped].joined(separator: " ")
     }
 
-    /// The keys to probe in the dictionary for a tap at `index`:
-    /// the word alone, the left two-word phrase, and the right two-word phrase.
-    /// Exposed for tests; production code uses `resolve(...)` directly.
+    /// The keys probed in the dictionary for a tap at `index`: the word
+    /// alone, then 2- and 3-word adjacent windows. Exposed for tests.
     static func lookupKeys(forIndex index: Int, sourceWords: [String]) -> [String] {
         guard sourceWords.indices.contains(index),
               let current = tokenize(sourceWords[index]).first
         else { return [] }
 
-        var keys: [String] = [current]
-        if sourceWords.indices.contains(index - 1),
-           let left = tokenize(sourceWords[index - 1]).first {
-            keys.append("\(left) \(current)")
+        let probes: [(Int, Int)] = [
+            (index, index),                  // single
+            (index - 1, index),              // left pair
+            (index, index + 1),              // right pair
+            (index - 2, index),              // left triple
+            (index - 1, index + 1),          // mid triple
+            (index, index + 2)               // right triple
+        ]
+        var keys: [String] = []
+        for (lo, hi) in probes {
+            guard lo >= 0, hi < sourceWords.count else { continue }
+            let tokens = (lo...hi).compactMap { tokenize(sourceWords[$0]).first }
+            guard tokens.count == hi - lo + 1 else { continue }
+            keys.append(tokens.joined(separator: " "))
         }
-        if sourceWords.indices.contains(index + 1),
-           let right = tokenize(sourceWords[index + 1]).first {
-            keys.append("\(current) \(right)")
-        }
-        return keys
+        // Deduplicate while preserving order — single-word probe overlaps
+        // with degenerate triple at edges in some configurations.
+        _ = current
+        var seen = Set<String>()
+        return keys.filter { seen.insert($0).inserted }
     }
 }

@@ -16,8 +16,7 @@ final class HintResolverTests: XCTestCase {
         let words = ["The", "red", "bicycle"]
         let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "La bicicleta roja.")
         XCTAssertEqual(result.single, ["roja"])
-        XCTAssertTrue(result.leftPair.isEmpty)
-        XCTAssertTrue(result.rightPair.isEmpty)
+        XCTAssertTrue(result.phrases.isEmpty, "unexpected phrases: \(result.phrases)")
         XCTAssertNil(result.fallback)
     }
 
@@ -33,55 +32,76 @@ final class HintResolverTests: XCTestCase {
     }
 
     func test_returnsTopCandidatesWhenNoneMatchAnswer() {
-        // "have" has candidates [ten, tenemos, tener, ...] but the answer
-        // doesn't contain any of them — single should fall back to top 3.
         let result = resolver.resolve(forIndex: 0, sourceWords: ["have"], answer: "blah xyz")
         XCTAssertFalse(result.single.isEmpty)
         XCTAssertLessThanOrEqual(result.single.count, 3)
         XCTAssertNil(result.fallback)
     }
 
-    // MARK: - Phrase lookups
+    // MARK: - Two-word phrase lookups
 
-    func test_tappingLeftWordOfPhraseSurfacesRightPair() {
-        // Tap "Good" in "Good morning, María" → right-pair lookup of
-        // "good morning" → "buenos días" matches the answer.
+    func test_tappingLeftWordOfPairSurfacesRightPair() {
+        // Tap "Good" — the right-pair "good morning" matches.
         let words = ["Good", "morning,", "María"]
         let result = resolver.resolve(forIndex: 0, sourceWords: words, answer: "Buenos días, María.")
-        XCTAssertEqual(result.rightPair, ["buenos días"])
-        XCTAssertTrue(result.leftPair.isEmpty)
-        // Single may also have candidates (top fallback); that's fine, just
-        // confirm the phrase is captured.
+        let phrase = result.phrases.first { $0.translations.contains("buenos días") }
+        XCTAssertNotNil(phrase, "expected a phrase match for 'good morning', got: \(result.phrases)")
+        XCTAssertEqual(phrase?.span, 0...1)
     }
 
-    func test_tappingRightWordOfPhraseSurfacesLeftPair() {
+    func test_tappingRightWordOfPairSurfacesLeftPair() {
         let words = ["Good", "morning,", "María"]
         let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "Buenos días, María.")
-        XCTAssertEqual(result.leftPair, ["buenos días"])
-        XCTAssertTrue(result.rightPair.isEmpty)
+        let phrase = result.phrases.first { $0.translations.contains("buenos días") }
+        XCTAssertNotNil(phrase)
+        XCTAssertEqual(phrase?.span, 0...1)
     }
 
-    func test_phraseDoesNotContributeWhenAnswerLacksIt() {
-        // "the red" → "el rojo" exists in the dictionary, but the answer
-        // "La bicicleta roja." doesn't contain "el" or "rojo". The phrase
-        // must not pollute the result.
+    func test_pairDoesNotContributeWhenAnswerLacksIt() {
+        // "the red" → "el rojo" but answer has neither — no phrase match.
         let words = ["The", "red", "bicycle"]
         let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "La bicicleta roja.")
-        XCTAssertTrue(result.leftPair.isEmpty, "unexpected leftPair: \(result.leftPair)")
-        XCTAssertTrue(result.rightPair.isEmpty, "unexpected rightPair: \(result.rightPair)")
+        XCTAssertTrue(result.phrases.isEmpty, "unexpected phrases: \(result.phrases)")
+    }
+
+    // MARK: - Three-word phrase lookups
+
+    func test_threeWordPhraseFromMiddle() {
+        // Tap "the" with "all" to the left and "time" to the right —
+        // the mid-triple "all the time" → "todo el tiempo" matches.
+        let words = ["I", "think", "about", "you", "all", "the", "time."]
+        let result = resolver.resolve(forIndex: 5, sourceWords: words, answer: "Pienso en ti todo el tiempo.")
+        let phrase = result.phrases.first { $0.translations.contains("todo el tiempo") }
+        XCTAssertNotNil(phrase, "expected mid-triple match, got: \(result.phrases)")
+        XCTAssertEqual(phrase?.span, 4...6)
+    }
+
+    func test_threeWordPhraseFromLeftEdge() {
+        // Tap "all" — the right-triple "all the time" matches.
+        let words = ["I", "think", "about", "you", "all", "the", "time."]
+        let result = resolver.resolve(forIndex: 4, sourceWords: words, answer: "Pienso en ti todo el tiempo.")
+        let phrase = result.phrases.first { $0.translations.contains("todo el tiempo") }
+        XCTAssertNotNil(phrase, "expected right-triple match, got: \(result.phrases)")
+        XCTAssertEqual(phrase?.span, 4...6)
+    }
+
+    func test_threeWordPhraseFromRightEdge() {
+        // Tap "time" — the left-triple "all the time" matches.
+        let words = ["I", "think", "about", "you", "all", "the", "time."]
+        let result = resolver.resolve(forIndex: 6, sourceWords: words, answer: "Pienso en ti todo el tiempo.")
+        let phrase = result.phrases.first { $0.translations.contains("todo el tiempo") }
+        XCTAssertNotNil(phrase, "expected left-triple match, got: \(result.phrases)")
+        XCTAssertEqual(phrase?.span, 4...6)
     }
 
     // MARK: - Fallback
 
     func test_fallsBackToProportionalWhenNothingMatches() {
-        // "Bicycle" isn't in the vocab dictionary; proportional mapping
-        // should produce a position-mapped answer word.
         let words = ["The", "red", "bicycle"]
         let answer = "La bicicleta roja"
         let result = resolver.resolve(forIndex: 2, sourceWords: words, answer: answer)
         XCTAssertTrue(result.single.isEmpty)
-        XCTAssertTrue(result.leftPair.isEmpty)
-        XCTAssertTrue(result.rightPair.isEmpty)
+        XCTAssertTrue(result.phrases.isEmpty)
         XCTAssertNotNil(result.fallback)
         XCTAssertTrue(answer.lowercased().contains(result.fallback!.lowercased()))
     }
@@ -98,11 +118,27 @@ final class HintResolverTests: XCTestCase {
 
     // MARK: - lookupKeys / tokenize helpers
 
-    func test_lookupKeys_returnsSingleAndAdjacentPairs() {
-        let words = ["Good", "morning,", "María"]
-        XCTAssertEqual(HintResolver.lookupKeys(forIndex: 0, sourceWords: words), ["good", "good morning"])
-        XCTAssertEqual(HintResolver.lookupKeys(forIndex: 1, sourceWords: words), ["morning", "good morning", "morning maría"])
-        XCTAssertEqual(HintResolver.lookupKeys(forIndex: 2, sourceWords: words), ["maría", "morning maría"])
+    func test_lookupKeys_includesAllAdjacentWindows() {
+        let words = ["a", "b", "c", "d", "e"]
+        // Tap index 2 ("c"): single + 2 pairs + 3 triples = 6 keys.
+        XCTAssertEqual(
+            HintResolver.lookupKeys(forIndex: 2, sourceWords: words),
+            ["c", "b c", "c d", "a b c", "b c d", "c d e"]
+        )
+    }
+
+    func test_lookupKeys_skipsWindowsThatRunOffTheEdge() {
+        let words = ["a", "b", "c"]
+        // Tap leftmost: only right-leaning windows are valid.
+        XCTAssertEqual(
+            HintResolver.lookupKeys(forIndex: 0, sourceWords: words),
+            ["a", "a b", "a b c"]
+        )
+        // Tap rightmost: only left-leaning windows are valid.
+        XCTAssertEqual(
+            HintResolver.lookupKeys(forIndex: 2, sourceWords: words),
+            ["c", "b c", "a b c"]
+        )
     }
 
     func test_lookupKeys_outOfBoundsReturnsEmpty() {
