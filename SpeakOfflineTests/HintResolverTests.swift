@@ -95,10 +95,10 @@ final class HintResolverTests: XCTestCase {
     // MARK: - No-hint cases
 
     func test_unknownWordReturnsEmptyResult() {
-        // "bicycle" isn't in the vocab dictionary; there's no fallback now,
-        // so the result is empty and the view will show no hint above the
-        // tapped word.
-        let result = resolver.resolve(forIndex: 2, sourceWords: ["The", "red", "bicycle"], answer: "La bicicleta roja")
+        // A nonsense word the dictionary can't possibly know. With the
+        // proportional fallback gone, the result is empty and the view will
+        // show no hint above the tapped word.
+        let result = resolver.resolve(forIndex: 0, sourceWords: ["asdfqwertzxcv"], answer: "La bicicleta roja")
         XCTAssertTrue(result.isEmpty)
     }
 
