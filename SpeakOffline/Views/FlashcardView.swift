@@ -3,15 +3,42 @@ import SwiftUI
 struct FlashcardView: View {
     @StateObject var viewModel: FlashcardViewModel
     @State private var isMicPressed = false
+    @State private var showingAnalytics = false
 
     var body: some View {
         VStack(spacing: 24) {
             if let card = viewModel.currentCard {
-                // Card metadata: section name, unit number, CEFR level
-                Text(cardMetadata(card))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 4)
+                // Card metadata row: section/unit/CEFR, review history dots,
+                // and a button to open the analytics sheet.
+                HStack(spacing: 10) {
+                    Text(cardMetadata(card))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    HStack(spacing: 4) {
+                        ForEach(0..<5, id: \.self) { i in
+                            let dot = viewModel.recentResults[4 - i]
+                            Circle()
+                                .fill(dot == true ? Color.green
+                                      : dot == false ? Color.red
+                                      : Color.gray.opacity(0.3))
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+
+                    Spacer()
+
+                    Button {
+                        showingAnalytics = true
+                    } label: {
+                        Image(systemName: "chart.bar.xaxis")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityLabel("Open analytics")
+                }
+                .padding(.horizontal)
+                .padding(.top, 4)
 
                 Spacer()
 
@@ -72,8 +99,13 @@ struct FlashcardView: View {
                         manualRatingButtons
                     }
                 } else {
-                    manualRatingButtons
-                        .hidden()
+                    // Before answer is shown: skip without rating.
+                    Button("Skip") {
+                        viewModel.skip()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .tint(.secondary)
                 }
 
                 // Progress
@@ -94,6 +126,16 @@ struct FlashcardView: View {
         .ignoresSafeArea(edges: .bottom)
         .animation(.easeInOut(duration: 0.3), value: viewModel.isShowingAnswer)
         .animation(.easeInOut(duration: 0.25), value: viewModel.speechMatched)
+        .sheet(isPresented: $showingAnalytics) {
+            NavigationStack {
+                PhraseListView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showingAnalytics = false }
+                        }
+                    }
+            }
+        }
     }
 
     // MARK: - Card Metadata

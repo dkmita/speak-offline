@@ -8,6 +8,9 @@ final class FlashcardViewModel: ObservableObject {
     @Published var isShowingAnswer: Bool = false
     @Published var speechMatched: Bool? = nil
     @Published var cardsReviewed: Int = 0
+    /// Last 5 reviews of the current card, most recent first.
+    /// Padded with nil if fewer than 5 reviews exist. nil = no review yet.
+    @Published var recentResults: [Bool?] = Array(repeating: nil, count: 5)
 
     let speechService: SpeechService
     let settings: UserSettings
@@ -122,13 +125,43 @@ final class FlashcardViewModel: ObservableObject {
             speechService.transcript = ""
             speechService.clearLastRecording()
 
+            if let id = selected.id {
+                loadRecentResults(for: id)
+            }
+
         } catch {
             currentCard = nil
         }
     }
 
+    /// Fetch last 5 review qualities for the given card and convert to a
+    /// padded [Bool?] (most recent first; nil = no review). Mirrors the
+    /// dot rendering in PhraseListView so the two stay visually consistent.
+    private func loadRecentResults(for cardId: Int64) {
+        do {
+            recentResults = try database.dbQueue.read { db in
+                let rows = try Row.fetchAll(db, sql: """
+                    SELECT quality FROM reviewSession
+                    WHERE cardId = ?
+                    ORDER BY reviewedAt DESC
+                    LIMIT 5
+                """, arguments: [cardId])
+                var dots: [Bool?] = rows.map { ($0["quality"] as Int) >= 3 }
+                while dots.count < 5 { dots.append(nil) }
+                return dots
+            }
+        } catch {
+            recentResults = Array(repeating: nil, count: 5)
+        }
+    }
+
     func showAnswer() {
         isShowingAnswer = true
+    }
+
+    /// Advance to the next card without recording a review.
+    func skip() {
+        pickNextCard()
     }
 
     /// Push-to-talk: invoked when the mic button is pressed down. Clears any
