@@ -34,6 +34,11 @@ struct TappableWordsView: View {
                 }
             }
         }
+        // Hints are per-card. When the card advances the view is reused at the same
+        // position so @State sticks around; clear it whenever the source text changes.
+        .onChange(of: text) { _, _ in
+            tappedIndex = nil
+        }
     }
 
     /// Map an English word index to the corresponding Spanish word(s)
