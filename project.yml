@@ -45,3 +45,6 @@ targets:
       - SpeakOfflineTests
     dependencies:
       - target: SpeakOffline
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
