@@ -427,6 +427,22 @@ struct TappableHintsLayout: Layout {
             }.max() ?? 0
         }
 
+        // Any subview that didn't get a placement above (most commonly a
+        // phrase hint whose span crosses a wrap boundary, which we
+        // deliberately skip per-row) gets parked far offscreen with zero
+        // size. Without this, SwiftUI's Layout protocol leaves unplaced
+        // subviews at (0, 0) at their natural size — they're invisible
+        // there but still intercept taps on the first word.
+        let placedIndices = Set(placements.map(\.subviewIndex))
+        for i in 0..<subviews.count where !placedIndices.contains(i) {
+            placements.append(Placement(
+                subviewIndex: i,
+                x: -10_000,
+                y: -10_000,
+                size: .zero
+            ))
+        }
+
         return LayoutResult(
             size: CGSize(width: totalWidth, height: totalHeight),
             placements: placements
