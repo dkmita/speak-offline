@@ -69,7 +69,6 @@ Proposed schema additions on top of current `Card.swift`:
 | `grammarConcepts` | string[] | `["possessive_mi_tu", "estar_singular", "question_donde"]` |
 | `vocabIntroduced` | string[] | `["el banco", "aquí", "dónde"]` |
 | `vocabReinforced` | string[] | `["yo", "estar"]` |
-| `cardKind` | enum | `phrase`, `vocab`, `dialogue`, `story` |
 
 Existing fields stay (`front`, `back`, `phonetic`, `cefrLevel`). Old `unit`/`section` fields become legacy — we either migrate or keep alongside.
 
@@ -135,7 +134,8 @@ We will need a controlled vocabulary for `grammarConcepts` (see §6 below).
 - **Grammar:**
   - Adjective placement after noun + gender agreement (`bonito/a`)
   - `vivir` singular
-- **Vocab introduced:** `la familia`, `la madre`, `el padre`, `el hermano`, `la hermana`, `el hijo`, `la hija`, `el abuelo`, `la abuela`, `el esposo`, `la esposa`, `el perro`, `la casa`, `el apartamento`, `el carro`/`el automóvil`, `la bicicleta`, `grande`, `bonito`, `inteligente`, `interesante`, `elegante`, `perfecto`, `muy`, `vivir`
+  - Preposition `en` (in/at) for location (needed with `vivir`)
+- **Vocab introduced:** `la familia`, `la madre`, `el padre`, `el hermano`, `la hermana`, `el hijo`, `la hija`, `el abuelo`, `la abuela`, `el esposo`, `la esposa`, `el perro`, `la casa`, `el apartamento`, `el carro`/`el automóvil`, `la bicicleta`, `grande`, `bonito`, `inteligente`, `interesante`, `elegante`, `perfecto`, `muy`, `vivir`, `en`
 - **Verify from app:** No lesson-level breakdown found.
 
 ### Unit 1.6 — Shop for clothes, Use present tense
@@ -150,6 +150,7 @@ We will need a controlled vocabulary for `grammarConcepts` (see §6 below).
   - Adjectives: `barato`, `caro`, `cómodo`, `favorito`, `diferente`, `demasiado`
   - Colors: `rojo`, `azul`, `verde`, `gris`, `marrón`
   - Verbs/connectors: `comprar`, `querer`, `pagar`, `o`, `y`, `ese`, `el regalo`
+  - Retail nouns: `la tienda`, `la ropa` (needed in the confirmed sample below)
 - **Sample card:** "Yo quiero comprar una cartera marrón en mi tienda de ropa favorita." → I want to buy a brown wallet at my favorite clothing store.
 
 ### Unit 1.7 — Talk about school ⚠️ thin
