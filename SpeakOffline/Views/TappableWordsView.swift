@@ -59,15 +59,14 @@ struct TappableWordsView: View {
         let result = hintResult
 
         if index == tapped {
-            // Stack labels: single-word translation on top (or fallback if
-            // the dictionary doesn't know the word), then one label per
-            // matched phrase in resolver order (left-pair, right-pair,
-            // left-triple, mid-triple, right-triple).
+            // Stack labels: single-word translation on top, then one label
+            // per matched phrase in resolver order (left-pair, right-pair,
+            // left-triple, mid-triple, right-triple). If the dictionary
+            // doesn't have this word, labels stays empty and the tapped
+            // word is just underlined with no hint above it.
             var labels: [HintLabel] = []
             if !result.single.isEmpty {
                 labels.append(.init(text: result.single.joined(separator: " / "), kind: .single))
-            } else if let fb = result.fallback {
-                labels.append(.init(text: fb, kind: .single))
             }
             for phrase in result.phrases {
                 labels.append(.init(text: phrase.translations.joined(separator: " / "), kind: .phrase))

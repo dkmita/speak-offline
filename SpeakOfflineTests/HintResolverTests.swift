@@ -17,7 +17,6 @@ final class HintResolverTests: XCTestCase {
         let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "La bicicleta roja.")
         XCTAssertEqual(result.single, ["roja"])
         XCTAssertTrue(result.phrases.isEmpty, "unexpected phrases: \(result.phrases)")
-        XCTAssertNil(result.fallback)
     }
 
     func test_caseAndPunctuationDoNotBreakLookup() {
@@ -35,7 +34,6 @@ final class HintResolverTests: XCTestCase {
         let result = resolver.resolve(forIndex: 0, sourceWords: ["have"], answer: "blah xyz")
         XCTAssertFalse(result.single.isEmpty)
         XCTAssertLessThanOrEqual(result.single.count, 3)
-        XCTAssertNil(result.fallback)
     }
 
     // MARK: - Two-word phrase lookups
@@ -94,20 +92,13 @@ final class HintResolverTests: XCTestCase {
         XCTAssertEqual(phrase?.span, 4...6)
     }
 
-    // MARK: - Fallback
+    // MARK: - No-hint cases
 
-    func test_fallsBackToProportionalWhenNothingMatches() {
-        let words = ["The", "red", "bicycle"]
-        let answer = "La bicicleta roja"
-        let result = resolver.resolve(forIndex: 2, sourceWords: words, answer: answer)
-        XCTAssertTrue(result.single.isEmpty)
-        XCTAssertTrue(result.phrases.isEmpty)
-        XCTAssertNotNil(result.fallback)
-        XCTAssertTrue(answer.lowercased().contains(result.fallback!.lowercased()))
-    }
-
-    func test_emptyAnswerHasNoFallback() {
-        let result = resolver.resolve(forIndex: 0, sourceWords: ["asdfqwert"], answer: "")
+    func test_unknownWordReturnsEmptyResult() {
+        // "bicycle" isn't in the vocab dictionary; there's no fallback now,
+        // so the result is empty and the view will show no hint above the
+        // tapped word.
+        let result = resolver.resolve(forIndex: 2, sourceWords: ["The", "red", "bicycle"], answer: "La bicicleta roja")
         XCTAssertTrue(result.isEmpty)
     }
 

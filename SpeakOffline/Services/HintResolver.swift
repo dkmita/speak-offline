@@ -11,10 +11,7 @@ struct PhraseMatch: Equatable, Hashable {
 /// Structured outcome of a single tap hint lookup.
 ///
 /// Carries the single-word translations and any matched multi-word phrases
-/// separately so the view can render each with distinct styling. The
-/// `fallback` field is only populated when every dictionary path is empty —
-/// it preserves the legacy proportional-position guess for words the
-/// dictionary doesn't know.
+/// separately so the view can render each with distinct styling.
 struct HintResult: Equatable {
     /// Translations for the tapped word alone. May be empty.
     let single: [String]
@@ -25,14 +22,11 @@ struct HintResult: Equatable {
     /// right-triple).
     let phrases: [PhraseMatch]
 
-    /// Proportional-position guess. Set only when every other field is empty.
-    let fallback: String?
-
     var isEmpty: Bool {
-        single.isEmpty && phrases.isEmpty && fallback == nil
+        single.isEmpty && phrases.isEmpty
     }
 
-    static let empty = HintResult(single: [], phrases: [], fallback: nil)
+    static let empty = HintResult(single: [], phrases: [])
 }
 
 /// Picks Spanish hints for an English word on a flashcard.
@@ -85,13 +79,7 @@ struct HintResolver {
             }
         }
 
-        let fallback: String?
-        if single.isEmpty && phrases.isEmpty {
-            fallback = Self.proportionalHint(index: index, sourceWords: sourceWords, answer: answer)
-        } else {
-            fallback = nil
-        }
-        return HintResult(single: single, phrases: phrases, fallback: fallback)
+        return HintResult(single: single, phrases: phrases)
     }
 
     private func pickSingle(from candidates: [String], answerTokens: Set<String>) -> [String] {
@@ -131,21 +119,6 @@ struct HintResolver {
         s.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
-    }
-
-    /// Legacy proportional position mapping. Splits both sides on whitespace
-    /// and maps source index → answer index by ratio.
-    static func proportionalHint(index: Int, sourceWords: [String], answer: String) -> String? {
-        let answerWords = answer.components(separatedBy: " ").filter { !$0.isEmpty }
-        let srcCount = sourceWords.count
-        let dstCount = answerWords.count
-        guard dstCount > 0, srcCount > 0 else { return nil }
-
-        let ratio = Double(dstCount) / Double(srcCount)
-        let startIdx = Int((Double(index) * ratio).rounded(.down))
-        let endIdx = Int((Double(index + 1) * ratio).rounded(.up)) - 1
-        let clamped = max(0, startIdx)...min(dstCount - 1, max(startIdx, endIdx))
-        return answerWords[clamped].joined(separator: " ")
     }
 
     /// The keys probed in the dictionary for a tap at `index`: the word
