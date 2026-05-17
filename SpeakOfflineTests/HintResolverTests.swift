@@ -143,6 +143,44 @@ final class HintResolverTests: XCTestCase {
         XCTAssertEqual(HintResolver.tokenize("  "), [])
     }
 
+    // MARK: - Spanish enclitic handling
+
+    func test_splitEnclitics_splitsInfinitivePlusClitic() {
+        XCTAssertEqual(HintResolver.splitEnclitics("conocerte"), ["conocer", "te"])
+        XCTAssertEqual(HintResolver.splitEnclitics("ayudarme"), ["ayudar", "me"])
+        XCTAssertEqual(HintResolver.splitEnclitics("encontrarlo"), ["encontrar", "lo"])
+        XCTAssertEqual(HintResolver.splitEnclitics("repetirla"), ["repetir", "la"])
+        XCTAssertEqual(HintResolver.splitEnclitics("hacerle"), ["hacer", "le"])
+    }
+
+    func test_splitEnclitics_doesNotSplitNounsWithAccidentalVerbEndings() {
+        // "fuerte" / "suerte" have prefixes (fuer/suer) that end in "er" but
+        // with a vowel before — these should NOT split.
+        XCTAssertEqual(HintResolver.splitEnclitics("fuerte"), ["fuerte"])
+        XCTAssertEqual(HintResolver.splitEnclitics("suerte"), ["suerte"])
+        // "parte" / "firme" are too short — prefix < 4 chars.
+        XCTAssertEqual(HintResolver.splitEnclitics("parte"), ["parte"])
+        XCTAssertEqual(HintResolver.splitEnclitics("firme"), ["firme"])
+    }
+
+    func test_answerMatchTokens_includesClitcSplitForms() {
+        let tokens = HintResolver.answerMatchTokens("Mucho gusto en conocerte.")
+        XCTAssertTrue(tokens.contains("conocerte"), "original token must be preserved")
+        XCTAssertTrue(tokens.contains("conocer"), "split prefix must be added")
+        XCTAssertTrue(tokens.contains("te"), "split clitic must be added")
+    }
+
+    func test_resolveMatchesAcrossEnclitic() {
+        // Tap "you" in "Nice to meet you" — answer is "Mucho gusto en
+        // conocerte." Before the clitic fix, "te" (a translation of "you")
+        // wouldn't match "conocerte" and the resolver fell back. Now the
+        // answer token set includes "te" via the split.
+        let words = ["Nice", "to", "meet", "you"]
+        let result = resolver.resolve(forIndex: 3, sourceWords: words, answer: "Mucho gusto en conocerte.")
+        XCTAssertTrue(result.single.contains("te"),
+                      "expected 'te' to match via enclitic split; got: \(result.single)")
+    }
+
     // MARK: - Contraction handling
 
     func test_lookupTokensExpandsKnownContractions() {

@@ -42,7 +42,7 @@ struct HintResolver {
     /// Returns the structured hint result for the tap at `index`.
     func resolve(forIndex index: Int, sourceWords: [String], answer: String) -> HintResult {
         guard sourceWords.indices.contains(index) else { return .empty }
-        let answerTokens = Set(Self.tokenize(answer))
+        let answerTokens = Self.answerMatchTokens(answer)
 
         // Single-word lookup. For contractions this becomes a phrase key
         // (e.g., "don't" → "do not"); for everything else it's one token.
@@ -193,6 +193,64 @@ struct HintResolver {
         s.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
+    }
+
+    /// The set of tokens to use when checking whether a candidate translation
+    /// appears in the card's answer. Includes every plain token plus any
+    /// clitic-split forms ("conocerte" also contributes "conocer" and "te").
+    ///
+    /// The original token is always kept, so a wrong split can't cause a real
+    /// match to be missed — at worst it adds harmless noise.
+    static func answerMatchTokens(_ answer: String) -> Set<String> {
+        let raw = tokenize(answer)
+        var set = Set(raw)
+        for tok in raw {
+            let parts = splitEnclitics(tok)
+            if parts.count > 1 {
+                set.formUnion(parts)
+            }
+        }
+        return set
+    }
+
+    /// Spanish enclitic pronoun suffixes, longest first to avoid premature
+    /// matches (e.g. test "selo" before "lo").
+    private static let cliticSuffixes: [String] = [
+        "noslas", "noslos", "melas", "melos", "telas", "telos", "selas", "selos",
+        "nosla", "noslo", "mela", "melo", "tela", "telo", "sela", "selo",
+        "les", "los", "las", "nos",
+        "me", "te", "se", "le", "lo", "la"
+    ]
+    private static let spanishVowels: Set<Character> = ["a", "e", "i", "o", "u", "á", "é", "í", "ó", "ú"]
+
+    /// If a Spanish answer token looks like `<infinitive-or-gerund> + <clitic>`
+    /// ("conocerte" → "conocer" + "te"), return the split. Otherwise return
+    /// `[token]`. Conservative — requires a long-enough verb-form prefix and
+    /// a consonant immediately before short -ar/-er/-ir endings, which filters
+    /// false positives like "fuerte", "parte", "firme" whose endings are
+    /// accidental.
+    static func splitEnclitics(_ token: String) -> [String] {
+        for suf in cliticSuffixes {
+            // Require ≥4-char prefix before the clitic — short verbs like
+            // "verte" (ver+te) get caught here as a false negative; the
+            // tradeoff is fewer false-positive splits on common short words.
+            guard token.count >= suf.count + 4, token.hasSuffix(suf) else { continue }
+            let prefix = String(token.dropLast(suf.count))
+
+            let last2 = prefix.suffix(2)
+            if last2 == "ar" || last2 == "er" || last2 == "ir" {
+                // For short verb endings, require a consonant immediately
+                // before — filters "fuer-te", "suer-te" (vowel before).
+                let beforeIdx = prefix.index(prefix.endIndex, offsetBy: -3)
+                let beforeChar = prefix[beforeIdx]
+                if !spanishVowels.contains(beforeChar) {
+                    return [prefix, suf]
+                }
+            } else if prefix.hasSuffix("ando") || prefix.hasSuffix("iendo") || prefix.hasSuffix("yendo") {
+                return [prefix, suf]
+            }
+        }
+        return [token]
     }
 
     /// The keys probed in the dictionary for a tap at `index`: the word
