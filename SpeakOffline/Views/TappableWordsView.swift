@@ -12,16 +12,15 @@ struct TappableWordsView: View {
     let bold: Bool
 
     @State private var tappedIndex: Int?
+    /// Cached resolver output. Updated only when `tappedIndex` or `text`
+    /// changes — avoids recomputing the 6 dictionary lookups for each of
+    /// N words on every SwiftUI body re-evaluation.
+    @State private var hintResult: HintResult = .empty
 
     private let resolver = HintResolver()
 
     private var words: [String] {
         text.components(separatedBy: " ").filter { !$0.isEmpty }
-    }
-
-    private var hintResult: HintResult {
-        guard let index = tappedIndex else { return .empty }
-        return resolver.resolve(forIndex: index, sourceWords: words, answer: answerText)
     }
 
     var body: some View {
@@ -43,6 +42,15 @@ struct TappableWordsView: View {
         // same position so @State sticks around; clear on text change.
         .onChange(of: text) { _, _ in
             tappedIndex = nil
+        }
+        // Recompute the cached hint exactly once per tap (and once per card
+        // change, which clears tappedIndex above and triggers this too).
+        .onChange(of: tappedIndex) { _, newIndex in
+            if let newIndex {
+                hintResult = resolver.resolve(forIndex: newIndex, sourceWords: words, answer: answerText)
+            } else {
+                hintResult = .empty
+            }
         }
     }
 
