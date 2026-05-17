@@ -1,7 +1,10 @@
 import SwiftUI
 
-/// Displays text as individually tappable words. Tapping a word shows
-/// the corresponding word(s) from the answer phrase in a popover.
+/// Displays text as individually tappable words. Tapping a word reveals its
+/// Spanish hint(s) above it. When the tapped word is also part of a known
+/// two-word phrase in the vocabulary, the phrase translation is shown
+/// alongside the single-word hint and the neighbor word is highlighted to
+/// indicate the phrase span.
 struct TappableWordsView: View {
     let text: String
     let answerText: String
@@ -16,13 +19,17 @@ struct TappableWordsView: View {
         text.components(separatedBy: " ").filter { !$0.isEmpty }
     }
 
+    private var hintResult: HintResult {
+        guard let index = tappedIndex else { return .empty }
+        return resolver.resolve(forIndex: index, sourceWords: words, answer: answerText)
+    }
+
     var body: some View {
         WrappingHStack(alignment: .center, spacing: 4) {
             ForEach(Array(words.enumerated()), id: \.offset) { index, word in
                 WordButton(
                     word: word,
-                    hint: hintFor(index: index),
-                    isRevealed: tappedIndex == index,
+                    state: state(at: index),
                     font: font,
                     bold: bold
                 ) {
@@ -32,40 +39,104 @@ struct TappableWordsView: View {
                 }
             }
         }
-        // Hints are per-card. When the card advances the view is reused at the same
-        // position so @State sticks around; clear it whenever the source text changes.
+        // Hints are per-card. When the card advances the view is reused at the
+        // same position so @State sticks around; clear on text change.
         .onChange(of: text) { _, _ in
             tappedIndex = nil
         }
     }
 
-    private func hintFor(index: Int) -> String {
-        resolver.hint(forIndex: index, sourceWords: words, answer: answerText)
+    private func state(at index: Int) -> WordState {
+        guard let tapped = tappedIndex else { return .idle }
+        let result = hintResult
+
+        if index == tapped {
+            // Build the stacked label set for the tapped word.
+            var labels: [HintLabel] = []
+
+            // Single-word hint (or the proportional fallback) on top, styled
+            // as the primary translation.
+            if !result.single.isEmpty {
+                labels.append(.init(text: result.single.joined(separator: " / "), kind: .single))
+            } else if let fb = result.fallback {
+                labels.append(.init(text: fb, kind: .single))
+            }
+            if !result.leftPair.isEmpty {
+                labels.append(.init(text: result.leftPair.joined(separator: " / "), kind: .phrase))
+            }
+            if !result.rightPair.isEmpty {
+                labels.append(.init(text: result.rightPair.joined(separator: " / "), kind: .phrase))
+            }
+            return .tapped(labels: labels)
+        }
+
+        // Neighbor of the tapped word that's part of an active phrase. The
+        // phrase translation itself is shown above the tapped word; here we
+        // just underline the neighbor so the span is visible.
+        if index == tapped - 1, !result.leftPair.isEmpty {
+            return .phraseNeighbor
+        }
+        if index == tapped + 1, !result.rightPair.isEmpty {
+            return .phraseNeighbor
+        }
+        return .idle
     }
+}
+
+/// Visual state of a word in the tappable layout.
+private enum WordState {
+    case idle
+    case tapped(labels: [HintLabel])
+    case phraseNeighbor
+}
+
+/// A label rendered above a tapped word. Single translations and phrase
+/// translations are styled distinctly so the user can tell them apart.
+private struct HintLabel: Hashable {
+    let text: String
+    let kind: Kind
+    enum Kind { case single, phrase }
 }
 
 private struct WordButton: View {
     let word: String
-    let hint: String
-    let isRevealed: Bool
+    let state: WordState
     let font: Font
     let bold: Bool
     let action: () -> Void
 
     var body: some View {
         VStack(spacing: 2) {
-            if isRevealed {
-                Text(hint)
-                    .font(.caption2)
-                    .foregroundStyle(Color.accentColor)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+            if case .tapped(let labels) = state {
+                ForEach(labels, id: \.self) { label in
+                    Text(label.text)
+                        .font(.caption2)
+                        .italic(label.kind == .phrase)
+                        .foregroundStyle(label.kind == .single ? Color.accentColor : Color.secondary)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
             }
 
             Text(word)
                 .font(font)
                 .fontWeight(bold ? .bold : .regular)
-                .underline(isRevealed, color: Color.accentColor.opacity(0.4))
+                .underline(underlineActive, color: underlineColor)
                 .onTapGesture(perform: action)
+        }
+    }
+
+    private var underlineActive: Bool {
+        switch state {
+        case .idle: return false
+        case .tapped, .phraseNeighbor: return true
+        }
+    }
+
+    private var underlineColor: Color {
+        switch state {
+        case .idle: return .clear
+        case .tapped: return Color.accentColor.opacity(0.4)
+        case .phraseNeighbor: return Color.secondary.opacity(0.5)
         }
     }
 }

@@ -1,17 +1,46 @@
 import Foundation
 
-/// Picks a Spanish hint for an English word on a flashcard.
+/// Structured outcome of a single tap hint lookup.
 ///
-/// Strategy, in order:
-///   1. Look up the word in the bundled vocab dictionary.
-///   2. Prefer dictionary translations whose tokens actually appear in this
-///      card's Spanish answer — disambiguates conjugations and gendered forms
-///      (e.g. "have" returns many tener-forms; we keep the one in the answer).
-///   3. If the dictionary has translations but none match this answer, fall
-///      back to showing the top few (a likely-correct guess across cards).
-///   4. If the dictionary doesn't know the word, fall back to proportional
-///      position mapping against the answer — the legacy behavior, useful for
-///      proper nouns and words not in the dictionary.
+/// Carries the three independent lookups (single word, left phrase, right
+/// phrase) separately so the view can render each with distinct styling.
+/// The `fallback` field is only populated when every dictionary path is
+/// empty — it preserves the legacy proportional-position guess for words the
+/// dictionary doesn't know.
+struct HintResult: Equatable {
+    /// Translations for the tapped word alone. May be empty.
+    let single: [String]
+
+    /// Phrase translation when `[tapped-1] [tapped]` matches the card's answer.
+    let leftPair: [String]
+
+    /// Phrase translation when `[tapped] [tapped+1]` matches the card's answer.
+    let rightPair: [String]
+
+    /// Proportional-position guess. Set only when every other field is empty.
+    let fallback: String?
+
+    var isEmpty: Bool {
+        single.isEmpty && leftPair.isEmpty && rightPair.isEmpty && fallback == nil
+    }
+
+    static let empty = HintResult(single: [], leftPair: [], rightPair: [], fallback: nil)
+}
+
+/// Picks Spanish hints for an English word on a flashcard.
+///
+/// Probes three dictionary entries per tap — the word alone, the two-word
+/// phrase ending at the tap, and the two-word phrase starting at the tap —
+/// so the user sees both single-word and adjacent-phrase translations when
+/// they apply.
+///
+/// Disambiguation: when the dictionary returns multiple candidates for a
+/// lookup, we prefer those whose tokens appear in this card's answer (e.g.
+/// `"red"` → `[roja, rojas, rojo]` collapses to `roja` when the answer is
+/// "La bicicleta roja"). For single-word lookups with no answer match we
+/// still return the top few candidates — informative even without context.
+/// Phrase lookups only contribute when they match the answer; an unrelated
+/// phrase that happens to share a word would be noise.
 struct HintResolver {
     let vocabulary: VocabularyService
 
@@ -19,87 +48,71 @@ struct HintResolver {
         self.vocabulary = vocabulary
     }
 
-    /// Resolve a hint for the word at `index` in `sourceWords`, given the full
-    /// Spanish answer.
-    ///
-    /// Probes three dictionary keys and merges the results: the tapped word
-    /// alone, the tapped word + one neighbor to the left, and the tapped word
-    /// + one neighbor to the right. Two-word phrases like "good morning" or
-    /// "a lot of" are common in the dictionary, and surfacing them lets the
-    /// hint suggest "buenos días" when the user taps either "good" or
-    /// "morning" individually.
-    ///
-    /// Answer-matching disambiguation is applied per lookup, so each set
-    /// contributes either its answer-matching forms or its top few candidates.
-    /// Returns "?" only if no lookup hits and the proportional fallback also
-    /// fails.
-    func hint(forIndex index: Int, sourceWords: [String], answer: String) -> String {
-        guard index >= 0, index < sourceWords.count else { return "?" }
-
+    /// Returns the structured hint result for the tap at `index`.
+    func resolve(forIndex index: Int, sourceWords: [String], answer: String) -> HintResult {
+        guard sourceWords.indices.contains(index) else { return .empty }
         let answerTokens = Set(Self.tokenize(answer))
-        let keys = Self.lookupKeys(forIndex: index, sourceWords: sourceWords)
-        var combined: [String] = []
-        var seen = Set<String>()
 
-        for (i, key) in keys.enumerated() {
-            // Index 0 is the single-word key; everything after is a phrase.
-            let isSingleWord = (i == 0)
-            let candidates = vocabulary.spanish(for: key)
-            guard !candidates.isEmpty else { continue }
+        // Single-word lookup.
+        let singleKey = Self.tokenize(sourceWords[index]).first ?? ""
+        let singleCandidates = singleKey.isEmpty ? [] : vocabulary.spanish(for: singleKey)
+        let single = pickSingle(from: singleCandidates, answerTokens: answerTokens)
 
-            let matching = candidates.filter { candidate in
-                let parts = Self.tokenize(candidate)
-                return !parts.isEmpty && parts.allSatisfy { answerTokens.contains($0) }
-            }
+        // Phrase lookups. Only return candidates that match the answer —
+        // an unrelated phrase sharing a word is noise.
+        let leftPair = pickPhrase(
+            leftIndex: index - 1,
+            rightIndex: index,
+            sourceWords: sourceWords,
+            answerTokens: answerTokens
+        )
+        let rightPair = pickPhrase(
+            leftIndex: index,
+            rightIndex: index + 1,
+            sourceWords: sourceWords,
+            answerTokens: answerTokens
+        )
 
-            // Single-word lookups fall back to top candidates when nothing in
-            // this card's answer matches — still informative for the learner.
-            // Phrase lookups only contribute when they match the answer, since
-            // an unrelated phrase that happens to share a word would be noise.
-            let picks: [String]
-            if !matching.isEmpty {
-                picks = matching
-            } else if isSingleWord {
-                picks = Array(candidates.prefix(3))
-            } else {
-                picks = []
-            }
-
-            for p in picks where seen.insert(p).inserted {
-                combined.append(p)
-            }
+        let fallback: String?
+        if single.isEmpty && leftPair.isEmpty && rightPair.isEmpty {
+            fallback = Self.proportionalHint(index: index, sourceWords: sourceWords, answer: answer)
+        } else {
+            fallback = nil
         }
-
-        if !combined.isEmpty {
-            return combined.joined(separator: " / ")
-        }
-        return Self.proportionalHint(index: index, sourceWords: sourceWords, answer: answer) ?? "?"
+        return HintResult(single: single, leftPair: leftPair, rightPair: rightPair, fallback: fallback)
     }
 
-    /// The keys to probe in the dictionary for a tap at `index`:
-    /// the word alone, the left two-word phrase, and the right two-word phrase.
-    /// Tokens are normalized (lowercased, punctuation stripped) before
-    /// concatenation, so "Good," + "morning?" becomes "good morning".
-    static func lookupKeys(forIndex index: Int, sourceWords: [String]) -> [String] {
-        guard sourceWords.indices.contains(index),
-              let current = tokenize(sourceWords[index]).first
+    private func pickSingle(from candidates: [String], answerTokens: Set<String>) -> [String] {
+        guard !candidates.isEmpty else { return [] }
+        let matching = candidates.filter { matches(candidate: $0, answerTokens: answerTokens) }
+        if !matching.isEmpty { return matching }
+        return Array(candidates.prefix(3))
+    }
+
+    private func pickPhrase(
+        leftIndex: Int,
+        rightIndex: Int,
+        sourceWords: [String],
+        answerTokens: Set<String>
+    ) -> [String] {
+        guard sourceWords.indices.contains(leftIndex),
+              sourceWords.indices.contains(rightIndex),
+              let left = Self.tokenize(sourceWords[leftIndex]).first,
+              let right = Self.tokenize(sourceWords[rightIndex]).first
         else { return [] }
-
-        var keys: [String] = [current]
-        if sourceWords.indices.contains(index - 1),
-           let left = tokenize(sourceWords[index - 1]).first {
-            keys.append("\(left) \(current)")
-        }
-        if sourceWords.indices.contains(index + 1),
-           let right = tokenize(sourceWords[index + 1]).first {
-            keys.append("\(current) \(right)")
-        }
-        return keys
+        let key = "\(left) \(right)"
+        let candidates = vocabulary.spanish(for: key)
+        return candidates.filter { matches(candidate: $0, answerTokens: answerTokens) }
     }
+
+    private func matches(candidate: String, answerTokens: Set<String>) -> Bool {
+        let parts = Self.tokenize(candidate)
+        return !parts.isEmpty && parts.allSatisfy { answerTokens.contains($0) }
+    }
+
+    // MARK: - Static helpers
 
     /// Split on anything that isn't a Unicode letter or digit, lowercased.
-    /// Used both to derive the lookup key from the tapped word and to match
-    /// dictionary candidates against the answer.
     static func tokenize(_ s: String) -> [String] {
         s.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
@@ -119,5 +132,25 @@ struct HintResolver {
         let endIdx = Int((Double(index + 1) * ratio).rounded(.up)) - 1
         let clamped = max(0, startIdx)...min(dstCount - 1, max(startIdx, endIdx))
         return answerWords[clamped].joined(separator: " ")
+    }
+
+    /// The keys to probe in the dictionary for a tap at `index`:
+    /// the word alone, the left two-word phrase, and the right two-word phrase.
+    /// Exposed for tests; production code uses `resolve(...)` directly.
+    static func lookupKeys(forIndex index: Int, sourceWords: [String]) -> [String] {
+        guard sourceWords.indices.contains(index),
+              let current = tokenize(sourceWords[index]).first
+        else { return [] }
+
+        var keys: [String] = [current]
+        if sourceWords.indices.contains(index - 1),
+           let left = tokenize(sourceWords[index - 1]).first {
+            keys.append("\(left) \(current)")
+        }
+        if sourceWords.indices.contains(index + 1),
+           let right = tokenize(sourceWords[index + 1]).first {
+            keys.append("\(current) \(right)")
+        }
+        return keys
     }
 }

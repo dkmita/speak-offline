@@ -7,94 +7,96 @@ final class HintResolverTests: XCTestCase {
         vocabulary: VocabularyService(bundle: Bundle(for: VocabularyService.self))
     )
 
-    // MARK: - Dictionary path
+    // MARK: - Single-word lookups
 
     func test_picksTheFormThatAppearsInTheAnswer() {
-        // "red" maps to [roja, rojas, rojo]. The answer uses the feminine
+        // "red" maps to [roja, rojas, rojo]. Answer uses the feminine
         // singular "roja" — we should pick exactly that, not the masculine
         // or plural forms.
         let words = ["The", "red", "bicycle"]
-        let hint = resolver.hint(forIndex: 1, sourceWords: words, answer: "La bicicleta roja.")
-        XCTAssertEqual(hint, "roja")
+        let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "La bicicleta roja.")
+        XCTAssertEqual(result.single, ["roja"])
+        XCTAssertTrue(result.leftPair.isEmpty)
+        XCTAssertTrue(result.rightPair.isEmpty)
+        XCTAssertNil(result.fallback)
     }
 
     func test_caseAndPunctuationDoNotBreakLookup() {
-        // Capitalized source word with trailing punctuation; answer ends with
-        // a period. Should still resolve cleanly.
         let words = ["Red,", "please."]
-        let hint = resolver.hint(forIndex: 0, sourceWords: words, answer: "Rojo, por favor.")
-        XCTAssertEqual(hint, "rojo")
+        let result = resolver.resolve(forIndex: 0, sourceWords: words, answer: "Rojo, por favor.")
+        XCTAssertEqual(result.single, ["rojo"])
     }
 
     func test_singletonTranslationIsReturnedDirectly() {
-        let hint = resolver.hint(forIndex: 0, sourceWords: ["milk"], answer: "leche")
-        XCTAssertEqual(hint, "leche")
+        let result = resolver.resolve(forIndex: 0, sourceWords: ["milk"], answer: "leche")
+        XCTAssertEqual(result.single, ["leche"])
     }
 
-    func test_returnsCandidatesWhenNoneMatchAnswer() {
-        // Dictionary has translations but none of them appear in the answer.
-        // Should still return something useful (top candidates), not "?".
-        let words = ["have"]
-        let hint = resolver.hint(forIndex: 0, sourceWords: words, answer: "tengo")
-        // "tengo" is in the answer so this is actually a matching case; verify
-        // a no-match falls through to candidates instead by using an answer
-        // that doesn't contain any tener form.
-        XCTAssertFalse(hint.isEmpty)
-        XCTAssertNotEqual(hint, "?")
-
-        let noMatch = resolver.hint(forIndex: 0, sourceWords: words, answer: "blah xyz")
-        XCTAssertFalse(noMatch.isEmpty)
-        XCTAssertNotEqual(noMatch, "?")
-        // Should be one or more candidates joined by " / "
-        XCTAssertTrue(noMatch.contains("ten") || noMatch.contains("tien") || noMatch.contains("teng"))
+    func test_returnsTopCandidatesWhenNoneMatchAnswer() {
+        // "have" has candidates [ten, tenemos, tener, ...] but the answer
+        // doesn't contain any of them — single should fall back to top 3.
+        let result = resolver.resolve(forIndex: 0, sourceWords: ["have"], answer: "blah xyz")
+        XCTAssertFalse(result.single.isEmpty)
+        XCTAssertLessThanOrEqual(result.single.count, 3)
+        XCTAssertNil(result.fallback)
     }
 
-    // MARK: - Proportional fallback
+    // MARK: - Phrase lookups
 
-    func test_fallsBackToProportionalWhenWordNotInDictionary() {
-        // "Bicycle" isn't in the vocab dictionary; proportional mapping should
-        // pick the corresponding answer word by position.
+    func test_tappingLeftWordOfPhraseSurfacesRightPair() {
+        // Tap "Good" in "Good morning, María" → right-pair lookup of
+        // "good morning" → "buenos días" matches the answer.
+        let words = ["Good", "morning,", "María"]
+        let result = resolver.resolve(forIndex: 0, sourceWords: words, answer: "Buenos días, María.")
+        XCTAssertEqual(result.rightPair, ["buenos días"])
+        XCTAssertTrue(result.leftPair.isEmpty)
+        // Single may also have candidates (top fallback); that's fine, just
+        // confirm the phrase is captured.
+    }
+
+    func test_tappingRightWordOfPhraseSurfacesLeftPair() {
+        let words = ["Good", "morning,", "María"]
+        let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "Buenos días, María.")
+        XCTAssertEqual(result.leftPair, ["buenos días"])
+        XCTAssertTrue(result.rightPair.isEmpty)
+    }
+
+    func test_phraseDoesNotContributeWhenAnswerLacksIt() {
+        // "the red" → "el rojo" exists in the dictionary, but the answer
+        // "La bicicleta roja." doesn't contain "el" or "rojo". The phrase
+        // must not pollute the result.
+        let words = ["The", "red", "bicycle"]
+        let result = resolver.resolve(forIndex: 1, sourceWords: words, answer: "La bicicleta roja.")
+        XCTAssertTrue(result.leftPair.isEmpty, "unexpected leftPair: \(result.leftPair)")
+        XCTAssertTrue(result.rightPair.isEmpty, "unexpected rightPair: \(result.rightPair)")
+    }
+
+    // MARK: - Fallback
+
+    func test_fallsBackToProportionalWhenNothingMatches() {
+        // "Bicycle" isn't in the vocab dictionary; proportional mapping
+        // should produce a position-mapped answer word.
         let words = ["The", "red", "bicycle"]
         let answer = "La bicicleta roja"
-        let hint = resolver.hint(forIndex: 2, sourceWords: words, answer: answer)
-        // Index 2 of 3 source → maps to roughly the last word of the answer.
-        // The proportional logic clamps to a range; "roja" or "bicicleta roja"
-        // are both acceptable. Just check it returned an answer word, not "?".
-        XCTAssertNotEqual(hint, "?")
-        XCTAssertTrue(answer.lowercased().contains(hint.lowercased()))
+        let result = resolver.resolve(forIndex: 2, sourceWords: words, answer: answer)
+        XCTAssertTrue(result.single.isEmpty)
+        XCTAssertTrue(result.leftPair.isEmpty)
+        XCTAssertTrue(result.rightPair.isEmpty)
+        XCTAssertNotNil(result.fallback)
+        XCTAssertTrue(answer.lowercased().contains(result.fallback!.lowercased()))
     }
 
-    func test_emptyAnswerReturnsQuestionMark() {
-        let hint = resolver.hint(forIndex: 0, sourceWords: ["asdfqwert"], answer: "")
-        XCTAssertEqual(hint, "?")
+    func test_emptyAnswerHasNoFallback() {
+        let result = resolver.resolve(forIndex: 0, sourceWords: ["asdfqwert"], answer: "")
+        XCTAssertTrue(result.isEmpty)
     }
 
-    func test_outOfRangeIndexReturnsQuestionMark() {
-        let hint = resolver.hint(forIndex: 5, sourceWords: ["milk"], answer: "leche")
-        XCTAssertEqual(hint, "?")
+    func test_outOfRangeIndexReturnsEmpty() {
+        let result = resolver.resolve(forIndex: 5, sourceWords: ["milk"], answer: "leche")
+        XCTAssertTrue(result.isEmpty)
     }
 
-    // MARK: - Multi-word phrase lookups
-
-    func test_tappingLeftWordOfPhraseSurfacesPhraseHint() {
-        // Tap "good" in "Good morning, María". Single lookup of "good" returns
-        // [bien, buen, buena, buenas]; the right-pair lookup of "good morning"
-        // adds "buenos días". The answer is "Buenos días, María." so the
-        // phrase translation matches and should appear alongside the single-
-        // word candidates.
-        let words = ["Good", "morning,", "María"]
-        let hint = resolver.hint(forIndex: 0, sourceWords: words, answer: "Buenos días, María.")
-        XCTAssertTrue(hint.contains("buenos días"), "expected phrase match in hint, got: \(hint)")
-    }
-
-    func test_tappingRightWordOfPhraseSurfacesPhraseHint() {
-        // Tap "morning" in the same sentence. Single lookup returns [mañana];
-        // the left-pair lookup of "good morning" adds "buenos días". Answer
-        // disambiguation again prefers the phrase form.
-        let words = ["Good", "morning,", "María"]
-        let hint = resolver.hint(forIndex: 1, sourceWords: words, answer: "Buenos días, María.")
-        XCTAssertTrue(hint.contains("buenos días"), "expected phrase match in hint, got: \(hint)")
-    }
+    // MARK: - lookupKeys / tokenize helpers
 
     func test_lookupKeys_returnsSingleAndAdjacentPairs() {
         let words = ["Good", "morning,", "María"]
@@ -107,8 +109,6 @@ final class HintResolverTests: XCTestCase {
         XCTAssertEqual(HintResolver.lookupKeys(forIndex: 5, sourceWords: ["a", "b"]), [])
         XCTAssertEqual(HintResolver.lookupKeys(forIndex: -1, sourceWords: ["a"]), [])
     }
-
-    // MARK: - Tokenize helper
 
     func test_tokenizeStripsPunctuationAndLowercases() {
         XCTAssertEqual(HintResolver.tokenize("Hello, world!"), ["hello", "world"])
