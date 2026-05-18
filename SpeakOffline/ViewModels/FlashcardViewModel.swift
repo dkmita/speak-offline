@@ -259,13 +259,17 @@ final class FlashcardViewModel: ObservableObject {
         }
     }
 
+    /// Lowercase, diacritic-fold, then keep only letter sequences joined with
+    /// single spaces. Punctuation (?, ¿, !, ¡, periods, commas, em-dashes…)
+    /// is dropped entirely, so "¿Cómo estás?" and "cómo estás" both
+    /// normalize to "como estas" — speech recognizer output that omits the
+    /// question marks still matches the card's bracketed answer.
     func normalize(_ text: String) -> String {
         text.lowercased()
             .folding(options: .diacriticInsensitive, locale: .current)
             .components(separatedBy: CharacterSet.letters.inverted)
+            .filter { !$0.isEmpty }
             .joined(separator: " ")
-            .trimmingCharacters(in: .whitespaces)
-            .replacingOccurrences(of: "  ", with: " ")
     }
 
     /// Returns an AttributedString of the transcript with words matching the expected answer in green
