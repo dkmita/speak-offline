@@ -61,12 +61,11 @@ struct FlashcardView: View {
 
                 Spacer()
 
-                // Mic + transcript — placed above the answer slot so the
-                // primary interaction (press-and-hold to speak) sits closer
-                // to the question. The section reserves space for the
-                // transcript area even before recording so layout doesn't
-                // shift once speech recognition produces output.
-                micSection
+                // Transcript / playback / "not quite" warning — placed above
+                // the answer slot. minHeight keeps the area present even
+                // before recording so the answer slot below doesn't shift
+                // once speech recognition fills it in.
+                transcriptSection
 
                 // Show-answer / answer slot. The answer is always rendered so
                 // the slot's size is fixed; the Show Answer button overlays it
@@ -93,6 +92,9 @@ struct FlashcardView: View {
                     }
                 }
                 .padding(.horizontal)
+
+                // Press-and-hold mic — sits right above the rating/skip row.
+                micButton
 
                 // Rating buttons — always take up space
                 if viewModel.isShowingAnswer {
@@ -208,48 +210,40 @@ struct FlashcardView: View {
         return "Up to B2"
     }
 
-    // MARK: - Mic Section
+    // MARK: - Transcript Section
 
-    private var micSection: some View {
-        VStack(spacing: 8) {
-            micButton
-
-            // Reserved area below the mic for the transcript / playback /
-            // "not quite" warning. minHeight keeps the area present even
-            // before any recording so the answer slot below doesn't jump
-            // when speech recognition fills this in.
-            VStack(spacing: 4) {
-                if !viewModel.speechService.transcript.isEmpty {
-                    HStack(spacing: 6) {
-                        if let matched = viewModel.speechMatched {
-                            Image(systemName: matched ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                                .foregroundStyle(matched ? .green : .yellow)
-                        }
-                        Text(viewModel.coloredTranscript())
-                            .font(.body)
-                            .italic()
-                        playbackButton
+    private var transcriptSection: some View {
+        VStack(spacing: 4) {
+            if !viewModel.speechService.transcript.isEmpty {
+                HStack(spacing: 6) {
+                    if let matched = viewModel.speechMatched {
+                        Image(systemName: matched ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                            .foregroundStyle(matched ? .green : .yellow)
                     }
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal)
-                    .transition(.opacity)
-
-                    if viewModel.speechMatched == false {
-                        Text("Not quite — try again or show answer")
-                            .font(.caption)
-                            .foregroundStyle(.yellow)
-                    }
-                } else if viewModel.speechService.lastRecordingURL != nil
-                    && !viewModel.speechService.isListening {
-                    // Recorded audio but nothing recognized — let the user still
-                    // hear themselves.
+                    Text(viewModel.coloredTranscript())
+                        .font(.body)
+                        .italic()
                     playbackButton
-                        .transition(.opacity)
                 }
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal)
+                .transition(.opacity)
+
+                if viewModel.speechMatched == false {
+                    Text("Not quite — try again or show answer")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                }
+            } else if viewModel.speechService.lastRecordingURL != nil
+                && !viewModel.speechService.isListening {
+                // Recorded audio but nothing recognized — let the user still
+                // hear themselves.
+                playbackButton
+                    .transition(.opacity)
             }
-            .frame(maxWidth: .infinity, minHeight: 48, alignment: .top)
         }
+        .frame(maxWidth: .infinity, minHeight: 48, alignment: .top)
     }
 
     /// Full-width press-and-hold mic button. Sized prominently and pinned to
