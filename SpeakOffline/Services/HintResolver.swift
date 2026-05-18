@@ -100,7 +100,10 @@ struct HintResolver {
             matches(candidate: $0, answerTokens: answerTokens, answerStems: answerStems)
         }
         if !matching.isEmpty { return matching }
-        return Array(candidates.prefix(3))
+        // Fallback: no candidate appears in the answer. Rank by collapse-group
+        // so the user sees commonly-paired forms (gender/number/person variants)
+        // first instead of whatever's alphabetically earliest.
+        return Self.topRankedCandidates(from: candidates, maxGroups: 3)
     }
 
     /// Look up the phrase covering `span`, returning a `PhraseMatch` only if
@@ -394,6 +397,48 @@ struct HintResolver {
             }
         }
         return [token]
+    }
+
+    /// Pick the top `maxGroups` collapse-groups from a list of candidates and
+    /// return their flat members in group-order. Used by the fallback path
+    /// when no candidate appears in the card's answer.
+    ///
+    /// Ranking inside the candidate pool:
+    ///   1. Group size DESC — words with multiple inflections (gender pairs,
+    ///      conjugation siblings) tend to be the common, useful translations.
+    ///   2. Shortest-member length ASC — short forms are usually more common.
+    ///   3. Alphabetical — stable tiebreaker.
+    ///
+    /// Members of each group are returned in their original (alphabetical)
+    /// order so that the view's `collapseVariants` re-groups them correctly.
+    /// For "teacher" this yields [maestra, maestro, profesor, profesora,
+    /// enseñador, enseñante] → "maestr[a/o] / profesor[/a] / enseña[dor/nte]"
+    /// instead of the old "docente / enseñador / enseñante".
+    static func topRankedCandidates(from candidates: [String], maxGroups: Int) -> [String] {
+        var seen = Set<String>()
+        let unique = candidates.filter { seen.insert($0).inserted }
+        guard !unique.isEmpty else { return [] }
+
+        var groups: [[String]] = []
+        for item in unique {
+            if let idx = groups.firstIndex(where: { g in
+                g.allSatisfy { canCollapse($0, item) }
+            }) {
+                groups[idx].append(item)
+            } else {
+                groups.append([item])
+            }
+        }
+
+        groups.sort { lhs, rhs in
+            if lhs.count != rhs.count { return lhs.count > rhs.count }
+            let lhsMin = lhs.map(\.count).min() ?? 0
+            let rhsMin = rhs.map(\.count).min() ?? 0
+            if lhsMin != rhsMin { return lhsMin < rhsMin }
+            return (lhs.first ?? "") < (rhs.first ?? "")
+        }
+
+        return Array(groups.prefix(maxGroups).flatMap { $0 })
     }
 
     /// Collapse strings sharing a common prefix into `prefix[end1/end2/...]`.
