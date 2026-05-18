@@ -61,6 +61,13 @@ struct FlashcardView: View {
 
                 Spacer()
 
+                // Mic + transcript — placed above the answer slot so the
+                // primary interaction (press-and-hold to speak) sits closer
+                // to the question. The section reserves space for the
+                // transcript area even before recording so layout doesn't
+                // shift once speech recognition produces output.
+                micSection
+
                 // Show-answer / answer slot. The answer is always rendered so
                 // the slot's size is fixed; the Show Answer button overlays it
                 // until tapped. Tapping fades the button out and the answer in
@@ -86,9 +93,6 @@ struct FlashcardView: View {
                     }
                 }
                 .padding(.horizontal)
-
-                // Mic + transcript
-                micSection
 
                 // Rating buttons — always take up space
                 if viewModel.isShowingAnswer {
@@ -210,34 +214,41 @@ struct FlashcardView: View {
         VStack(spacing: 8) {
             micButton
 
-            if !viewModel.speechService.transcript.isEmpty {
-                HStack(spacing: 6) {
-                    if let matched = viewModel.speechMatched {
-                        Image(systemName: matched ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                            .foregroundStyle(matched ? .green : .yellow)
+            // Reserved area below the mic for the transcript / playback /
+            // "not quite" warning. minHeight keeps the area present even
+            // before any recording so the answer slot below doesn't jump
+            // when speech recognition fills this in.
+            VStack(spacing: 4) {
+                if !viewModel.speechService.transcript.isEmpty {
+                    HStack(spacing: 6) {
+                        if let matched = viewModel.speechMatched {
+                            Image(systemName: matched ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                .foregroundStyle(matched ? .green : .yellow)
+                        }
+                        Text(viewModel.coloredTranscript())
+                            .font(.body)
+                            .italic()
+                        playbackButton
                     }
-                    Text(viewModel.coloredTranscript())
-                        .font(.body)
-                        .italic()
-                    playbackButton
-                }
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal)
-                .transition(.opacity)
-
-                if viewModel.speechMatched == false {
-                    Text("Not quite — try again or show answer")
-                        .font(.caption)
-                        .foregroundStyle(.yellow)
-                }
-            } else if viewModel.speechService.lastRecordingURL != nil
-                && !viewModel.speechService.isListening {
-                // Recorded audio but nothing recognized — let the user still
-                // hear themselves.
-                playbackButton
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal)
                     .transition(.opacity)
+
+                    if viewModel.speechMatched == false {
+                        Text("Not quite — try again or show answer")
+                            .font(.caption)
+                            .foregroundStyle(.yellow)
+                    }
+                } else if viewModel.speechService.lastRecordingURL != nil
+                    && !viewModel.speechService.isListening {
+                    // Recorded audio but nothing recognized — let the user still
+                    // hear themselves.
+                    playbackButton
+                        .transition(.opacity)
+                }
             }
+            .frame(maxWidth: .infinity, minHeight: 48, alignment: .top)
         }
     }
 
