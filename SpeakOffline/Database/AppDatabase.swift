@@ -96,7 +96,7 @@ final class AppDatabase {
             }
 
             let url = Bundle.main.url(forResource: "cards", withExtension: "json",
-                                      subdirectory: "Resources")
+                                      subdirectory: "Bundled")
             guard let url else {
                 print("[SpeakOffline] cards.json not found in bundle")
                 return

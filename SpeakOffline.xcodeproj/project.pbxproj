@@ -20,7 +20,6 @@
 		60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */; };
 		60D64811EF4A85D748EF7B9A /* AnswerWordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */; };
 		67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BD877A07C1F67989317A6 /* ReviewSession.swift */; };
-		791B4C1DD37F1ACC1640415F /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 4B56192EED5259120B81DFD6 /* Resources */; };
 		7FD0A21F2674AE0CB035BE6D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4849C3C770319D9E1C5F13D7 /* GRDB */; };
 		88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4672B74B1E0D204E9D234B05 /* FlashcardView.swift */; };
 		A6FC1536198E132E1381548A /* HintResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */; };
@@ -28,6 +27,7 @@
 		D034343FA68262EAA35AF365 /* VocabularyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF70F86D8A27EAF28CA9022E /* VocabularyServiceTests.swift */; };
 		D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440052248FBC4ECC81C41EDD /* AppDatabase.swift */; };
 		DCBE27B2FD5C3FAC3308C889 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022FEFF32CAB57F19272FE49 /* Card.swift */; };
+		E1377FC5F9B25B5350D240CD /* Bundled in Resources */ = {isa = PBXBuildFile; fileRef = 60E5D5BEFAA8707DF794C1A8 /* Bundled */; };
 		FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -53,7 +53,7 @@
 		440052248FBC4ECC81C41EDD /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 		4672B74B1E0D204E9D234B05 /* FlashcardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardView.swift; sourceTree = "<group>"; };
 		4976D180D73D4AEAD878BF97 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
-		4B56192EED5259120B81DFD6 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Resources; path = SpeakOffline/Resources; sourceTree = SOURCE_ROOT; };
+		60E5D5BEFAA8707DF794C1A8 /* Bundled */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Bundled; path = SpeakOffline/Bundled; sourceTree = SOURCE_ROOT; };
 		6C54355E556A2E7AF19675FA /* SpeakOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SpeakOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TappableWordsView.swift; sourceTree = "<group>"; };
 		936CB841AD56BC8E8BAE5AEB /* PhraseListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhraseListView.swift; sourceTree = "<group>"; };
@@ -83,7 +83,7 @@
 		082E4F9D3D6566C617A093CE = {
 			isa = PBXGroup;
 			children = (
-				4B56192EED5259120B81DFD6 /* Resources */,
+				60E5D5BEFAA8707DF794C1A8 /* Bundled */,
 				7A7267500571FE31899BBECC /* SpeakOffline */,
 				AAC2F54D3246971ED9AAD057 /* SpeakOfflineTests */,
 				09941B1708EDD1840DC2246B /* Products */,
@@ -267,7 +267,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */,
-				791B4C1DD37F1ACC1640415F /* Resources in Resources */,
+				E1377FC5F9B25B5350D240CD /* Bundled in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

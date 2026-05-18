@@ -18,11 +18,14 @@ targets:
     sources:
       - path: SpeakOffline
         excludes:
-          - Resources
+          - Bundled
       # Folder reference (blue folder in Xcode). Contents are bundled as-is
       # but not indexed by the editor — keeps Xcode from choking on the
-      # multi-MB vocab.json every time the project opens.
-      - path: SpeakOffline/Resources
+      # multi-MB vocab.json every time the project opens. We deliberately
+      # avoid the literal name "Resources" because iOS 26.4's installer
+      # (IXPlaceholder) chokes on bundles that have a Resources/ subdir at
+      # their root and refuses to read the bundle ID.
+      - path: SpeakOffline/Bundled
         type: folder
     dependencies:
       - package: GRDB
