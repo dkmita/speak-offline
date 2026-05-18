@@ -229,12 +229,6 @@ struct FlashcardView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal)
                 .transition(.opacity)
-
-                if viewModel.speechMatched == false {
-                    Text("Not quite — try again or show answer")
-                        .font(.caption)
-                        .foregroundStyle(.yellow)
-                }
             } else if viewModel.speechService.lastRecordingURL != nil
                 && !viewModel.speechService.isListening {
                 // Recorded audio but nothing recognized — let the user still
