@@ -318,8 +318,8 @@ final class FlashcardViewModel: ObservableObject {
     private func checkAnswer(transcript: String, isFinal: Bool) {
         guard let card = currentCard, speechMatched != true else { return }
 
-        let spoken = normalize(transcript)
-        let expected = normalize(card.front)
+        let spoken = Self.dropOptionalLeadingPronoun(normalize(transcript))
+        let expected = Self.dropOptionalLeadingPronoun(normalize(card.front))
 
         let matched = spoken == expected
         print("[SpeakOffline] Match check: spoken=\"\(spoken)\" expected=\"\(expected)\" matched=\(matched) final=\(isFinal)")
@@ -364,6 +364,27 @@ final class FlashcardViewModel: ObservableObject {
             .components(separatedBy: CharacterSet.letters.inverted)
             .filter { !$0.isEmpty }
             .joined(separator: " ")
+    }
+
+    /// Spanish subject pronouns are syntactically optional — the verb
+    /// conjugation already encodes the subject. A learner who says "Yo tengo
+    /// hambre" when the card is "Tengo hambre" (or vice versa) is producing
+    /// valid Spanish. Stripping a leading optional pronoun from both sides
+    /// before comparing makes either form match. (Diacritics are already
+    /// folded by `normalize`, so the set uses bare forms.)
+    private static let optionalLeadingPronouns: Set<String> = [
+        "yo", "tu", "el", "ella", "usted",
+        "nosotros", "nosotras", "vosotros", "vosotras",
+        "ellos", "ellas", "ustedes",
+    ]
+
+    private static func dropOptionalLeadingPronoun(_ s: String) -> String {
+        let words = s.split(separator: " ", omittingEmptySubsequences: true)
+        guard words.count >= 2,
+              optionalLeadingPronouns.contains(String(words[0])) else {
+            return s
+        }
+        return words.dropFirst().joined(separator: " ")
     }
 
     /// The iOS speech recognizer sometimes transcribes spoken numbers as
