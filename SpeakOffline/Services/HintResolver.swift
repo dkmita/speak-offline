@@ -96,14 +96,20 @@ struct HintResolver {
         answerStems: Set<String>
     ) -> [String] {
         guard !candidates.isEmpty else { return [] }
-        let matching = candidates.filter {
+        // Always return the top-ranked collapse groups (3 by default) instead
+        // of narrowing to "only candidates in the answer". Narrowing would
+        // give away the answer and hide useful alternatives. But if any
+        // candidate DOES appear in the answer, force its group into the
+        // top 3 so the actual answer word is guaranteed to be visible
+        // alongside the alternatives.
+        let matching = Set(candidates.filter {
             matches(candidate: $0, answerTokens: answerTokens, answerStems: answerStems)
-        }
-        if !matching.isEmpty { return matching }
-        // Fallback: no candidate appears in the answer. Rank by collapse-group
-        // so the user sees commonly-paired forms (gender/number/person variants)
-        // first instead of whatever's alphabetically earliest.
-        return Self.topRankedCandidates(from: candidates, maxGroups: 3)
+        })
+        return Self.topRankedCandidates(
+            from: candidates,
+            maxGroups: 3,
+            prefer: matching
+        )
     }
 
     /// Look up the phrase covering `span`, returning a `PhraseMatch` only if
@@ -400,21 +406,29 @@ struct HintResolver {
     }
 
     /// Pick the top `maxGroups` collapse-groups from a list of candidates and
-    /// return their flat members in group-order. Used by the fallback path
-    /// when no candidate appears in the card's answer.
+    /// return their flat members in group-order.
     ///
     /// Ranking inside the candidate pool:
-    ///   1. Group size DESC — words with multiple inflections (gender pairs,
+    ///   1. `prefer` membership DESC — any group containing a preferred
+    ///      candidate (e.g. a word that appears in the card's answer) is
+    ///      guaranteed to win against equal-or-lower ranked groups.
+    ///   2. Group size DESC — words with multiple inflections (gender pairs,
     ///      conjugation siblings) tend to be the common, useful translations.
-    ///   2. Shortest-member length ASC — short forms are usually more common.
-    ///   3. Alphabetical — stable tiebreaker.
+    ///   3. Shortest-member length ASC — short forms are usually more common.
+    ///   4. Alphabetical — stable tiebreaker.
     ///
     /// Members of each group are returned in their original (alphabetical)
     /// order so that the view's `collapseVariants` re-groups them correctly.
-    /// For "teacher" this yields [maestra, maestro, profesor, profesora,
-    /// enseñador, enseñante] → "maestr[a/o] / profesor[/a] / enseña[dor/nte]"
-    /// instead of the old "docente / enseñador / enseñante".
-    static func topRankedCandidates(from candidates: [String], maxGroups: Int) -> [String] {
+    /// For "teacher" with no preference this yields [maestra, maestro,
+    /// profesor, profesora, enseñador, enseñante] → "maestr[a/o] /
+    /// profesor[/a] / enseña[dor/nte]". If the answer contains "docente",
+    /// passing `prefer: ["docente"]` bumps its group into the top 3:
+    /// "docente / maestr[a/o] / profesor[/a]".
+    static func topRankedCandidates(
+        from candidates: [String],
+        maxGroups: Int,
+        prefer: Set<String> = []
+    ) -> [String] {
         var seen = Set<String>()
         let unique = candidates.filter { seen.insert($0).inserted }
         guard !unique.isEmpty else { return [] }
@@ -431,6 +445,9 @@ struct HintResolver {
         }
 
         groups.sort { lhs, rhs in
+            let lhsPref = lhs.contains { prefer.contains($0) }
+            let rhsPref = rhs.contains { prefer.contains($0) }
+            if lhsPref != rhsPref { return lhsPref }
             if lhs.count != rhs.count { return lhs.count > rhs.count }
             let lhsMin = lhs.map(\.count).min() ?? 0
             let rhsMin = rhs.map(\.count).min() ?? 0
