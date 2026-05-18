@@ -5,7 +5,7 @@ import FoundationModels
 /// learner's Spanish attempt missed the mark. Runs entirely on-device on
 /// Apple-Intelligence-eligible devices (iPhone 15 Pro / 16 series and up).
 /// No network traffic — works in airplane mode.
-@available(iOS 18.1, *)
+@available(iOS 26, *)
 final class ExplanationService {
     static let shared = ExplanationService()
 

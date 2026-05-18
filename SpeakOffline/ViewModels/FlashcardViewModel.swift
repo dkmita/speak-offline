@@ -245,7 +245,7 @@ final class FlashcardViewModel: ObservableObject {
 
         Task { @MainActor in
             let result: String?
-            if #available(iOS 18.1, *) {
+            if #available(iOS 26, *) {
                 result = await ExplanationService.shared.explainMistake(
                     question: question, expected: expected, attempt: attempt
                 )
