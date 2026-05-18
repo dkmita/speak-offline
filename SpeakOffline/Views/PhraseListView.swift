@@ -229,8 +229,15 @@ final class PhraseListViewModel: ObservableObject {
         /// Last 5 reviews, most recent first. Padded with .empty if fewer than 5.
         let recentResults: [DotResult]
 
+        /// Result of the single most recent review, or `.empty` if never
+        /// reviewed. Drives the Got right / Got wrong filters: only the
+        /// latest answer counts, not a stale failure from 4 reviews ago.
+        var mostRecentResult: DotResult {
+            recentResults.first ?? .empty
+        }
+
         var lastWrong: Bool {
-            recentResults.contains(.wrong)
+            mostRecentResult == .wrong
         }
 
         var easeLabel: String {
@@ -249,12 +256,12 @@ final class PhraseListViewModel: ObservableObject {
 
     private func matchesStatus(_ phrase: PhraseRow, filter: PhraseFilter? = nil) -> Bool {
         let f = filter ?? self.filter
-        let hasBeenSeen = phrase.repetitions > 0 || phrase.lastWrong
+        let mostRecent = phrase.mostRecentResult
         switch f {
         case .all: return true
-        case .seen: return hasBeenSeen
-        case .correct: return hasBeenSeen && !phrase.lastWrong
-        case .wrong: return phrase.lastWrong
+        case .seen: return mostRecent != .empty
+        case .correct: return mostRecent == .correct
+        case .wrong: return mostRecent == .wrong
         }
     }
 
