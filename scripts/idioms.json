@@ -50,5 +50,30 @@
 
   "may i": ["puedo"],
   "come in": ["entrar", "pasar"],
-  "may i come in": ["puedo entrar", "puedo pasar"]
+  "may i come in": ["puedo entrar", "puedo pasar"],
+
+  "_comment_inflections": "Verb-conjugation backfills. The base vocab build was missing the present-indicative forms of `ir` under `going` / `going to`, so the resolver couldn't surface `voy a / vamos a / ...` when the user taps a periphrastic-future construction.",
+  "going": ["ir", "yendo", "voy", "vas", "va", "vamos", "van"],
+  "going to": ["ir a", "voy a", "vas a", "va a", "vamos a", "van a"],
+
+  "_comment_dative_affect": "Dative-of-affect verbs. The Spanish construction `me X` has no direct English counterpart — `I` becomes implicit and `me` appears as a prefix. Without these, the only way the resolver surfaces `me encanta` is via the single-word `love → encantar` stem match, which drops the `me`.",
+  "i love": ["me encanta", "me encantan", "amo"],
+  "i like": ["me gusta", "me gustan"],
+  "i hate": ["me da asco", "odio"],
+
+  "_comment_times": "Clock-time idioms. Spanish prepends `a la(s)` and uses feminine articles. None of `a`, `la`, `las` is reachable from `at` alone, so without these phrase entries the user only ever sees a single-word hint for the number (e.g. `siete`) — not the full `a las siete`.",
+  "at one": ["a la una"],
+  "at two": ["a las dos"],
+  "at three": ["a las tres"],
+  "at four": ["a las cuatro"],
+  "at five": ["a las cinco"],
+  "at six": ["a las seis"],
+  "at seven": ["a las siete"],
+  "at eight": ["a las ocho"],
+  "at nine": ["a las nueve"],
+  "at ten": ["a las diez"],
+  "at eleven": ["a las once"],
+  "at twelve": ["a las doce"],
+  "at noon": ["a mediodía", "al mediodía"],
+  "at midnight": ["a medianoche", "a la medianoche"]
 }
