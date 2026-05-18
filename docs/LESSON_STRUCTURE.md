@@ -46,7 +46,7 @@ Approximate volumes (Path):
 - Section 1: 8 units, ~40 lessons, ~250–400 cards' worth of content
 - Section 2: 26 units, ~130 lessons, ~800–1300 cards' worth of content
 
-For comparison, current `seed.json` has 851 cards across 5 decks but with no Duolingo-aligned unit/lesson metadata.
+Current `SpeakOffline/cards.json` has ~2,000 cards (7 per unit × 286 units) across the 8 Duolingo-aligned decks. (The earlier 851-card seed lived under the legacy `Intro / A1 - Beginner / A2 - Elementary / B1 - Intermediate / B2 - Upper Intermediate` deck names and was purged via the v2 migration.)
 
 ---
 
