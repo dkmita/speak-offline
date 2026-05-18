@@ -217,8 +217,17 @@ struct FlashcardView: View {
             if !viewModel.speechService.transcript.isEmpty {
                 HStack(spacing: 6) {
                     if let matched = viewModel.speechMatched {
-                        Image(systemName: matched ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                            .foregroundStyle(matched ? .green : .yellow)
+                        if matched {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                        } else if !viewModel.isShowingAnswer {
+                            // Once the answer is revealed the yellow warning
+                            // becomes nagging — the user can see the real
+                            // answer above. Keep the green check around as
+                            // positive feedback when they matched.
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.yellow)
+                        }
                     }
                     Text(viewModel.coloredTranscript())
                         .font(.body)
