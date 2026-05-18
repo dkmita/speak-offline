@@ -19,6 +19,11 @@ targets:
       - path: SpeakOffline
         excludes:
           - Resources
+      # Folder reference (blue folder in Xcode). Contents are bundled as-is
+      # but not indexed by the editor — keeps Xcode from choking on the
+      # multi-MB vocab.json every time the project opens.
+      - path: SpeakOffline/Resources
+        type: folder
     dependencies:
       - package: GRDB
     info:

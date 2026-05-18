@@ -404,10 +404,10 @@ def format_reverse(candidates: dict, top: int = 30) -> str:
 
 def main():
     repo = Path(__file__).resolve().parents[3]
-    vocab = repo / "SpeakOffline" / "vocab.json"
-    seed = repo / "SpeakOffline" / "seed.json"
+    vocab = repo / "SpeakOffline" / "Resources" / "vocab.json"
+    seed = repo / "SpeakOffline" / "Resources" / "cards.json"
     if not vocab.exists() or not seed.exists():
-        print(f"Couldn't find vocab.json or seed.json under {repo}", file=sys.stderr)
+        print(f"Couldn't find vocab.json or cards.json under {repo}", file=sys.stderr)
         sys.exit(1)
     if "--reverse" in sys.argv:
         candidates = reverse_audit(vocab, seed)

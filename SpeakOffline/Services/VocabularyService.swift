@@ -17,7 +17,8 @@ final class VocabularyService {
 
     init(bundle: Bundle = .main, resource: String = "vocab", ext: String = "json") {
         guard
-            let url = bundle.url(forResource: resource, withExtension: ext),
+            let url = bundle.url(forResource: resource, withExtension: ext,
+                                 subdirectory: "Resources"),
             let data = try? Data(contentsOf: url),
             let payload = try? JSONDecoder().decode(Payload.self, from: data)
         else {

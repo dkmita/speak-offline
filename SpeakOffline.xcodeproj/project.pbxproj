@@ -208,7 +208,6 @@
 			buildConfigurationList = 608DC8561F61388C7B457958 /* Build configuration list for PBXNativeTarget "SpeakOffline" */;
 			buildPhases = (
 				B72F3BA11503B0FAB4723892 /* Sources */,
-				66A36F01AEE988F209F0E524 /* Strip com.apple.provenance xattrs */,
 				4B85F98C8637F5A19E8F2486 /* Resources */,
 				F126390518BC236A72AA0DAB /* Frameworks */,
 			);
@@ -273,27 +272,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		66A36F01AEE988F209F0E524 /* Strip com.apple.provenance xattrs */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Strip com.apple.provenance xattrs";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ -n \"${CODESIGNING_FOLDER_PATH}\" ] && [ -d \"${CODESIGNING_FOLDER_PATH}\" ]; then\n  /usr/bin/xattr -rd com.apple.provenance \"${CODESIGNING_FOLDER_PATH}\" 2>/dev/null || true\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		29B7D219502126A30C3510D9 /* Sources */ = {
