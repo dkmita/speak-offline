@@ -396,6 +396,74 @@ struct HintResolver {
         return [token]
     }
 
+    /// Collapse strings sharing a common prefix into `prefix[end1/end2/...]`.
+    /// Useful for shrinking hint cells that would otherwise list every
+    /// gender/number/person variant separately, e.g.
+    ///   ["negro", "negra", "negros", "negras"] → ["negr[o/a/os/as]"]
+    ///   ["come", "comes", "comen"]             → ["come[/s/n]"]
+    ///   ["rojo", "amarillo"]                    → ["rojo", "amarillo"] (no group)
+    ///
+    /// Grouping rules: a candidate joins an existing cluster only if it
+    /// shares a ≥3-char prefix with every member AND each tail (the part
+    /// after the common prefix) is ≤4 chars. This filters loose matches
+    /// like ["ser", "soy"] (1-char LCP) or ["negro", "negruzco"] (4-char
+    /// tail vs. 0). Order is preserved by first-appearance.
+    static func collapseVariants(_ items: [String]) -> [String] {
+        var seen = Set<String>()
+        let unique = items.filter { seen.insert($0).inserted }
+        guard unique.count > 1 else { return unique }
+
+        var clusters: [[String]] = []
+        for item in unique {
+            if let idx = clusters.firstIndex(where: { cluster in
+                cluster.allSatisfy { canCollapse($0, item) }
+            }) {
+                clusters[idx].append(item)
+            } else {
+                clusters.append([item])
+            }
+        }
+
+        return clusters.map { cluster -> String in
+            guard cluster.count > 1 else { return cluster[0] }
+            let prefix = longestCommonPrefix(cluster)
+            guard prefix.count >= 3 else { return cluster.joined(separator: " / ") }
+            let tails = cluster.map { String($0.dropFirst(prefix.count)) }
+            return "\(prefix)[\(tails.joined(separator: "/"))]"
+        }
+    }
+
+    /// True if two strings share a long-enough common prefix and short-enough
+    /// tails to merit collapsing into a single bracketed hint.
+    private static func canCollapse(_ a: String, _ b: String) -> Bool {
+        let lcp = longestCommonPrefix(a, b)
+        guard lcp.count >= 3 else { return false }
+        let tailA = a.count - lcp.count
+        let tailB = b.count - lcp.count
+        return tailA <= 4 && tailB <= 4 && (tailA > 0 || tailB > 0)
+    }
+
+    /// Longest common prefix of two strings.
+    private static func longestCommonPrefix(_ a: String, _ b: String) -> String {
+        let aChars = Array(a)
+        let bChars = Array(b)
+        let n = min(aChars.count, bChars.count)
+        var i = 0
+        while i < n && aChars[i] == bChars[i] { i += 1 }
+        return String(aChars[0..<i])
+    }
+
+    /// Longest common prefix of an array of strings.
+    private static func longestCommonPrefix(_ strs: [String]) -> String {
+        guard let first = strs.first else { return "" }
+        var prefix = first
+        for s in strs.dropFirst() {
+            prefix = longestCommonPrefix(prefix, s)
+            if prefix.isEmpty { return "" }
+        }
+        return prefix
+    }
+
     /// The keys probed in the dictionary for a tap at `index`: the word
     /// alone, then 2- and 3-word adjacent windows. Contraction expansion
     /// happens at the per-word level, so a 2-source-word window with one

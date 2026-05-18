@@ -47,13 +47,13 @@ struct TappableWordsView: View {
             }
 
             if let tapped = tappedIndex, !hintResult.single.isEmpty {
-                HintCell(options: hintResult.single, kind: .single)
+                HintCell(options: HintResolver.collapseVariants(hintResult.single), kind: .single)
                     .hintRole(.singleHint(tapped))
                     .transition(.opacity)
             }
 
             ForEach(Array(hintResult.phrases.enumerated()), id: \.offset) { _, phrase in
-                HintCell(options: phrase.translations, kind: .phrase)
+                HintCell(options: HintResolver.collapseVariants(phrase.translations), kind: .phrase)
                     .hintRole(.phraseHint(phrase.span))
                     .transition(.opacity)
             }
