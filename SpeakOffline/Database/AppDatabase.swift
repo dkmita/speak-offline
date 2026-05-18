@@ -53,15 +53,32 @@ final class AppDatabase {
         // One-shot purge of the legacy 851-card decks (Intro / A1 - Beginner /
         // A2 - Elementary / B1 - Intermediate / B2 - Upper Intermediate). The
         // current cards.json uses the Duolingo section names (Rookie /
-        // Explorer / Traveler / ...), so any existing deck with a legacy name
-        // is dead weight. Cascade deletes their cards and review sessions.
-        // After this migration runs once, loadBundledCardsIfEmpty() repopulates
-        // from cards.json if the DB ends up empty.
+        // Explorer / Traveler / ...), so any existing deck with a legacy
+        // name is dead weight.
+        //
+        // GRDB defers foreign-key enforcement inside migration transactions,
+        // so ON DELETE CASCADE doesn't fire — we need to delete child rows
+        // (reviewSession → card → deck) explicitly to satisfy the FK check
+        // that runs at the end of the migration. After this migration runs
+        // once, loadBundledCardsIfEmpty() repopulates from cards.json if the
+        // DB ends up empty.
         migrator.registerMigration("v2_remove_legacy_decks") { db in
+            let legacyNames = "'Intro', 'A1 - Beginner', 'A2 - Elementary', " +
+                              "'B1 - Intermediate', 'B2 - Upper Intermediate'"
             try db.execute(sql: """
-                DELETE FROM deck WHERE name IN
-                ('Intro', 'A1 - Beginner', 'A2 - Elementary',
-                 'B1 - Intermediate', 'B2 - Upper Intermediate')
+                DELETE FROM reviewSession
+                WHERE cardId IN (
+                    SELECT card.id FROM card
+                    JOIN deck ON card.deckId = deck.id
+                    WHERE deck.name IN (\(legacyNames))
+                )
+            """)
+            try db.execute(sql: """
+                DELETE FROM card
+                WHERE deckId IN (SELECT id FROM deck WHERE name IN (\(legacyNames)))
+            """)
+            try db.execute(sql: """
+                DELETE FROM deck WHERE name IN (\(legacyNames))
             """)
         }
 
