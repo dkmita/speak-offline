@@ -11,7 +11,6 @@
 		0756A0322A68D5EAC10EF73D /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A488FE7AF9F8437987286241 /* SpeechService.swift */; };
 		12F3BE51DF5A2B99B1490DAB /* PhraseListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 936CB841AD56BC8E8BAE5AEB /* PhraseListView.swift */; };
 		1CBBD5EEC67B31B797343177 /* ExplanationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D839FCE3CC54CB15FFA30B67 /* ExplanationService.swift */; };
-		1EA1C5AE9DCE672B128CCC54 /* DeckListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39F237B88728089E391D98F9 /* DeckListView.swift */; };
 		25BB7A01EDA177101A07D081 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4976D180D73D4AEAD878BF97 /* UserSettings.swift */; };
 		2BCB5A06D9EF203D268702A2 /* VocabularyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D37FD47D761A8958DCEA6B /* VocabularyService.swift */; };
 		4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A64870782AD61A8255FCD89 /* Assets.xcassets */; };
@@ -19,7 +18,6 @@
 		5A70B17360D49331E82CCC0D /* TappableWordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */; };
 		5D4BF4D7DE0C99131CAD9667 /* SpeakOfflineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */; };
 		60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */; };
-		60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723806FAB089A367D9040B22 /* DeckListViewModel.swift */; };
 		60D64811EF4A85D748EF7B9A /* AnswerWordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */; };
 		67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BD877A07C1F67989317A6 /* ReviewSession.swift */; };
 		791B4C1DD37F1ACC1640415F /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 4B56192EED5259120B81DFD6 /* Resources */; };
@@ -51,7 +49,6 @@
 		180E9902A4A27ADE61473918 /* HintResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolver.swift; sourceTree = "<group>"; };
 		22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerWordsView.swift; sourceTree = "<group>"; };
 		398E2ABDA2728CC38DC814A7 /* SpanishTTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpanishTTSService.swift; sourceTree = "<group>"; };
-		39F237B88728089E391D98F9 /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListView.swift; sourceTree = "<group>"; };
 		3A64870782AD61A8255FCD89 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		440052248FBC4ECC81C41EDD /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 		4672B74B1E0D204E9D234B05 /* FlashcardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardView.swift; sourceTree = "<group>"; };
@@ -59,7 +56,6 @@
 		4B56192EED5259120B81DFD6 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Resources; path = SpeakOffline/Resources; sourceTree = SOURCE_ROOT; };
 		6C54355E556A2E7AF19675FA /* SpeakOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SpeakOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TappableWordsView.swift; sourceTree = "<group>"; };
-		723806FAB089A367D9040B22 /* DeckListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListViewModel.swift; sourceTree = "<group>"; };
 		936CB841AD56BC8E8BAE5AEB /* PhraseListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhraseListView.swift; sourceTree = "<group>"; };
 		95F12EE9E2B9FD1F5256F7C4 /* SpeakOffline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SpeakOffline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakOfflineTests.swift; sourceTree = "<group>"; };
@@ -107,7 +103,6 @@
 			isa = PBXGroup;
 			children = (
 				22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */,
-				39F237B88728089E391D98F9 /* DeckListView.swift */,
 				4672B74B1E0D204E9D234B05 /* FlashcardView.swift */,
 				936CB841AD56BC8E8BAE5AEB /* PhraseListView.swift */,
 				713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */,
@@ -149,7 +144,6 @@
 		89905919E735E27CB59F2FDA /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				723806FAB089A367D9040B22 /* DeckListViewModel.swift */,
 				D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */,
 			);
 			path = ViewModels;
@@ -214,6 +208,7 @@
 			buildConfigurationList = 608DC8561F61388C7B457958 /* Build configuration list for PBXNativeTarget "SpeakOffline" */;
 			buildPhases = (
 				B72F3BA11503B0FAB4723892 /* Sources */,
+				66A36F01AEE988F209F0E524 /* Strip com.apple.provenance xattrs */,
 				4B85F98C8637F5A19E8F2486 /* Resources */,
 				F126390518BC236A72AA0DAB /* Frameworks */,
 			);
@@ -279,6 +274,27 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		66A36F01AEE988F209F0E524 /* Strip com.apple.provenance xattrs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip com.apple.provenance xattrs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -n \"${CODESIGNING_FOLDER_PATH}\" ] && [ -d \"${CODESIGNING_FOLDER_PATH}\" ]; then\n  /usr/bin/xattr -rd com.apple.provenance \"${CODESIGNING_FOLDER_PATH}\" 2>/dev/null || true\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		29B7D219502126A30C3510D9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -298,8 +314,6 @@
 				D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */,
 				DCBE27B2FD5C3FAC3308C889 /* Card.swift in Sources */,
 				06B2F3174537B657E519232E /* Deck.swift in Sources */,
-				1EA1C5AE9DCE672B128CCC54 /* DeckListView.swift in Sources */,
-				60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */,
 				1CBBD5EEC67B31B797343177 /* ExplanationService.swift in Sources */,
 				88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */,
 				FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */,
@@ -347,9 +361,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = U55L26VLXT;
@@ -370,9 +382,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = U55L26VLXT;
