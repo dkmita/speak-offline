@@ -11,6 +11,17 @@ final class FlashcardViewModel: ObservableObject {
     /// Last 5 reviews of the current card, most recent first.
     /// Padded with nil if fewer than 5 reviews exist. nil = no review yet.
     @Published var recentResults: [Bool?] = Array(repeating: nil, count: 5)
+    /// True while the newest dot in `recentResults` is being celebrated
+    /// with a scale-up animation. The view uses this to draw attention
+    /// to the just-added result.
+    @Published var justAddedDotPending: Bool = false
+    /// True between rate() being called and pickNextCard completing —
+    /// blocks the rating buttons from double-firing during the delay.
+    @Published var isAdvancing: Bool = false
+    /// Set when checkAnswer auto-adds a green dot on a speech match, so
+    /// the subsequent rate() call knows the dot is already present and
+    /// the animation has already played.
+    private var resultRecordedFromSpeech: Bool = false
 
     let speechService: SpeechService
     let settings: UserSettings
@@ -167,6 +178,9 @@ final class FlashcardViewModel: ObservableObject {
             currentCard = selected
             isShowingAnswer = false
             speechMatched = nil
+            justAddedDotPending = false
+            isAdvancing = false
+            resultRecordedFromSpeech = false
             speechService.stopListening()
             speechService.transcript = ""
             speechService.clearLastRecording()
@@ -253,6 +267,18 @@ final class FlashcardViewModel: ObservableObject {
                 withAnimation(.easeIn(duration: 0.3)) {
                     isShowingAnswer = true
                 }
+                // Optimistically add the green dot to history and pulse it
+                // so the user sees the result land before they tap Next.
+                // Flag rate() so it skips the re-add and the extra delay —
+                // the user has already seen the animation by the time they
+                // press the button.
+                recentResults = [true] + Array(recentResults.dropLast())
+                resultRecordedFromSpeech = true
+                justAddedDotPending = true
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 800_000_000)
+                    justAddedDotPending = false
+                }
             }
         } else if isFinal {
             speechMatched = false
@@ -262,14 +288,63 @@ final class FlashcardViewModel: ObservableObject {
     /// Lowercase, diacritic-fold, then keep only letter sequences joined with
     /// single spaces. Punctuation (?, ¿, !, ¡, periods, commas, em-dashes…)
     /// is dropped entirely, so "¿Cómo estás?" and "cómo estás" both
-    /// normalize to "como estas" — speech recognizer output that omits the
-    /// question marks still matches the card's bracketed answer.
+    /// normalize to "como estas". Digit runs are spelled out in Spanish first
+    /// (e.g. "70" → "setenta") so the recognizer's numeric transcription still
+    /// matches the card's word form.
     func normalize(_ text: String) -> String {
-        text.lowercased()
+        Self.expandDigits(Self.stripClockMinutes(text.lowercased()))
             .folding(options: .diacriticInsensitive, locale: .current)
             .components(separatedBy: CharacterSet.letters.inverted)
             .filter { !$0.isEmpty }
             .joined(separator: " ")
+    }
+
+    /// The iOS speech recognizer sometimes transcribes spoken numbers as
+    /// digits ("setenta" → "70"). Spell them out in Spanish so matching works
+    /// regardless of which form the recognizer chose.
+    private static let spanishNumberFormatter: NumberFormatter = {
+        let f = NumberFormatter()
+        f.numberStyle = .spellOut
+        f.locale = Locale(identifier: "es")
+        return f
+    }()
+
+    /// Speech recognition often turns a spoken hour like "a las siete" into
+    /// "a las 7:00". Drop the trailing ":00" so the digit-expansion step sees
+    /// just the hour. Non-zero minutes ("7:30") are left alone — Spanish has
+    /// several idiomatic forms ("siete y media", "siete y treinta", "siete y
+    /// cuarto", "ocho menos cuarto") and no single substitution covers them.
+    private static let clockMinuteRegex = try! NSRegularExpression(
+        pattern: #"(\d+):00(?!\d)"#
+    )
+    private static func stripClockMinutes(_ s: String) -> String {
+        let range = NSRange(s.startIndex..., in: s)
+        return clockMinuteRegex.stringByReplacingMatches(
+            in: s, range: range, withTemplate: "$1"
+        )
+    }
+
+    private static func expandDigits(_ s: String) -> String {
+        var out = ""
+        var i = s.startIndex
+        while i < s.endIndex {
+            if s[i].isNumber {
+                var j = i
+                while j < s.endIndex, s[j].isNumber { j = s.index(after: j) }
+                let digits = String(s[i..<j])
+                if let n = Int(digits),
+                   let spelled = spanishNumberFormatter.string(from: NSNumber(value: n)) {
+                    out += spelled
+                } else {
+                    out += digits
+                }
+                i = j
+            } else {
+                out.append(s[i])
+                i = s.index(after: i)
+            }
+        }
+        return out
     }
 
     /// Returns an AttributedString of the transcript with words matching the expected answer in green
@@ -305,7 +380,8 @@ final class FlashcardViewModel: ObservableObject {
     }
 
     func rate(quality: Int) {
-        guard var card = currentCard else { return }
+        guard var card = currentCard, !isAdvancing else { return }
+        isAdvancing = true
 
         card.applyReview(quality: quality)
 
@@ -325,6 +401,32 @@ final class FlashcardViewModel: ObservableObject {
         }
 
         cardsReviewed += 1
-        pickNextCard()
+
+        // Speech-match path already added + animated the dot when matched.
+        // Don't re-add or re-animate — just advance.
+        if resultRecordedFromSpeech {
+            resultRecordedFromSpeech = false
+            pickNextCard()
+            return
+        }
+
+        // Manual rating: optimistically prepend the new result so the user
+        // sees it land before the next card replaces the view.
+        let wasCorrect = quality >= 3
+        recentResults = [wasCorrect] + Array(recentResults.dropLast())
+
+        if wasCorrect {
+            // Pulse the new dot, then advance after ~1s.
+            justAddedDotPending = true
+            Task { @MainActor in
+                try? await Task.sleep(nanoseconds: 800_000_000)
+                justAddedDotPending = false
+                try? await Task.sleep(nanoseconds: 200_000_000)
+                pickNextCard()
+            }
+        } else {
+            // Wrong answer: record the red dot and move on without ceremony.
+            pickNextCard()
+        }
     }
 }

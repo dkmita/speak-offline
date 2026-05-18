@@ -19,11 +19,18 @@ struct FlashcardView: View {
                     HStack(spacing: 4) {
                         ForEach(0..<5, id: \.self) { i in
                             let dot = viewModel.recentResults[4 - i]
+                            // The rightmost slot (i == 4) holds the newest
+                            // review — when justAddedDotPending is true we
+                            // scale it up briefly to draw attention.
+                            let isNewest = (i == 4) && viewModel.justAddedDotPending
                             Circle()
                                 .fill(dot == true ? Color.green
                                       : dot == false ? Color.red
                                       : Color.gray.opacity(0.3))
                                 .frame(width: 6, height: 6)
+                                .scaleEffect(isNewest ? 2.6 : 1.0)
+                                .animation(.spring(response: 0.4, dampingFraction: 0.55),
+                                           value: viewModel.justAddedDotPending)
                         }
                     }
 
@@ -104,8 +111,10 @@ struct FlashcardView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
+                        .disabled(viewModel.isAdvancing)
                     } else {
                         manualRatingButtons
+                            .disabled(viewModel.isAdvancing)
                     }
                 } else {
                     // Before answer is shown: skip without rating.
@@ -115,6 +124,7 @@ struct FlashcardView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.large)
                     .tint(.secondary)
+                    .disabled(viewModel.isAdvancing)
                 }
 
                 // Progress
