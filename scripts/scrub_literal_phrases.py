@@ -38,7 +38,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / ".claude" / "skills" / "audit-hints"))
 from audit import spanish_stem, tokenize, CONTRACTIONS  # noqa: E402
 
-VOCAB = REPO / "SpeakOffline" / "Resources" / "vocab.json"
+VOCAB = REPO / "SpeakOffline" / "Bundled" / "vocab.json"
 
 # Multi-word EN keys that are the expansion target of a contraction like
 # "I'm" → "i am". The resolver's contraction path looks up the full expanded

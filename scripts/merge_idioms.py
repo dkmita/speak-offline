@@ -8,7 +8,7 @@ that's the form the resolver looks up after expanding contractions.
 """
 import json, os, sys
 
-VOCAB = 'SpeakOffline/Resources/vocab.json'
+VOCAB = 'SpeakOffline/Bundled/vocab.json'
 IDIOMS = 'scripts/idioms.json'
 
 vocab = json.load(open(VOCAB))
