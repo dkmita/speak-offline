@@ -24,7 +24,7 @@
 		7FD0A21F2674AE0CB035BE6D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4849C3C770319D9E1C5F13D7 /* GRDB */; };
 		88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4672B74B1E0D204E9D234B05 /* FlashcardView.swift */; };
 		A6FC1536198E132E1381548A /* HintResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */; };
-		B340FE9F503CC09AABFC7C24 /* seed.json in Resources */ = {isa = PBXBuildFile; fileRef = 67FFD869E3DC0CE20542FC58 /* seed.json */; };
+		B340FE9F503CC09AABFC7C24 /* cards.json in Resources */ = {isa = PBXBuildFile; fileRef = 67FFD869E3DC0CE20542FC58 /* cards.json */; };
 		B98068C842F8DD2FDC4D9583 /* HintResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180E9902A4A27ADE61473918 /* HintResolver.swift */; };
 		E3F1A2B4C5D6789012345AB1 /* ExplanationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6789012345EF2 /* ExplanationService.swift */; };
 		C8A4FA7F36042EDFF784AD0B /* vocab.json in Resources */ = {isa = PBXBuildFile; fileRef = 1EFD0C23F9DAB8F423E06459 /* vocab.json */; };
@@ -58,7 +58,7 @@
 		440052248FBC4ECC81C41EDD /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 		4672B74B1E0D204E9D234B05 /* FlashcardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardView.swift; sourceTree = "<group>"; };
 		4976D180D73D4AEAD878BF97 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
-		67FFD869E3DC0CE20542FC58 /* seed.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = seed.json; sourceTree = "<group>"; };
+		67FFD869E3DC0CE20542FC58 /* cards.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = cards.json; sourceTree = "<group>"; };
 		6C54355E556A2E7AF19675FA /* SpeakOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SpeakOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TappableWordsView.swift; sourceTree = "<group>"; };
 		723806FAB089A367D9040B22 /* DeckListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListViewModel.swift; sourceTree = "<group>"; };
@@ -137,7 +137,7 @@
 			children = (
 				3A64870782AD61A8255FCD89 /* Assets.xcassets */,
 				E69FAF965358628C04A57594 /* Info.plist */,
-				67FFD869E3DC0CE20542FC58 /* seed.json */,
+				67FFD869E3DC0CE20542FC58 /* cards.json */,
 				043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */,
 				1EFD0C23F9DAB8F423E06459 /* vocab.json */,
 				2715A33E9B664783586EF5D4 /* Database */,
@@ -276,7 +276,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */,
-				B340FE9F503CC09AABFC7C24 /* seed.json in Resources */,
+				B340FE9F503CC09AABFC7C24 /* cards.json in Resources */,
 				C8A4FA7F36042EDFF784AD0B /* vocab.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

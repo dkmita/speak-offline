@@ -50,68 +50,84 @@ final class AppDatabase {
             try db.create(index: "card_on_section", on: "card", columns: ["section"])
         }
 
+        // One-shot purge of the legacy 851-card decks (Intro / A1 - Beginner /
+        // A2 - Elementary / B1 - Intermediate / B2 - Upper Intermediate). The
+        // current cards.json uses the Duolingo section names (Rookie /
+        // Explorer / Traveler / ...), so any existing deck with a legacy name
+        // is dead weight. Cascade deletes their cards and review sessions.
+        // After this migration runs once, loadBundledCardsIfEmpty() repopulates
+        // from cards.json if the DB ends up empty.
+        migrator.registerMigration("v2_remove_legacy_decks") { db in
+            try db.execute(sql: """
+                DELETE FROM deck WHERE name IN
+                ('Intro', 'A1 - Beginner', 'A2 - Elementary',
+                 'B1 - Intermediate', 'B2 - Upper Intermediate')
+            """)
+        }
+
         try migrator.migrate(dbQueue)
     }
 
-    /// Seed the database from bundled JSON if no decks exist
-    func seedIfEmpty() throws {
+    /// Load the bundled cards.json into the database if no decks exist.
+    /// Runs on every launch; no-ops once the DB has been populated.
+    func loadBundledCardsIfEmpty() throws {
         try dbQueue.write { db in
             let count = try Deck.fetchCount(db)
             guard count == 0 else {
-                print("[SpeakOffline] Database already has \(count) decks, skipping seed")
+                print("[SpeakOffline] Database already has \(count) decks, skipping load")
                 return
             }
 
-            let url = Bundle.main.url(forResource: "seed", withExtension: "json")
+            let url = Bundle.main.url(forResource: "cards", withExtension: "json")
             guard let url else {
-                print("[SpeakOffline] seed.json not found in bundle")
+                print("[SpeakOffline] cards.json not found in bundle")
                 return
             }
             guard let data = try? Data(contentsOf: url) else {
-                print("[SpeakOffline] Failed to read seed.json at \(url)")
+                print("[SpeakOffline] Failed to read cards.json at \(url)")
                 return
             }
-            print("[SpeakOffline] Loading seed data from \(url)")
+            print("[SpeakOffline] Loading cards from \(url)")
 
-            let seedData = try JSONDecoder.appDecoder.decode(SeedData.self, from: data)
+            let library = try JSONDecoder.appDecoder.decode(CardLibrary.self, from: data)
 
-            for seedDeck in seedData.decks {
+            for libraryDeck in library.decks {
                 var deck = Deck(
-                    name: seedDeck.name,
-                    description: seedDeck.description,
-                    languageCode: seedDeck.languageCode,
+                    name: libraryDeck.name,
+                    description: libraryDeck.description,
+                    languageCode: libraryDeck.languageCode,
                     createdAt: Date()
                 )
                 try deck.insert(db)
 
-                for seedCard in seedDeck.cards {
+                for entry in libraryDeck.cards {
                     var card = Card.new(
                         deckId: deck.id!,
-                        front: seedCard.front,
-                        back: seedCard.back,
-                        phonetic: seedCard.phonetic,
-                        unit: seedCard.unit,
-                        section: seedCard.section,
-                        cefrLevel: seedCard.cefrLevel
+                        front: entry.front,
+                        back: entry.back,
+                        phonetic: entry.phonetic,
+                        unit: entry.unit,
+                        section: entry.section,
+                        cefrLevel: entry.cefrLevel
                     )
                     try card.insert(db)
                 }
             }
-            print("[SpeakOffline] Seeded \(try Card.fetchCount(db)) cards")
+            print("[SpeakOffline] Loaded \(try Card.fetchCount(db)) cards")
         }
     }
 }
 
-// MARK: - Seed data JSON model
+// MARK: - cards.json JSON model
 
-private struct SeedData: Codable {
-    struct SeedDeck: Codable {
+private struct CardLibrary: Codable {
+    struct LibraryDeck: Codable {
         let name: String
         let description: String
         let languageCode: String
-        let cards: [SeedCard]
+        let cards: [LibraryCard]
     }
-    struct SeedCard: Codable {
+    struct LibraryCard: Codable {
         let front: String
         let back: String
         let phonetic: String?
@@ -119,7 +135,7 @@ private struct SeedData: Codable {
         let section: Int
         let cefrLevel: String
     }
-    let decks: [SeedDeck]
+    let decks: [LibraryDeck]
 }
 
 // MARK: - Shared database instance
@@ -139,7 +155,7 @@ extension AppDatabase {
             let dbURL = appSupportURL.appendingPathComponent("speakoffline.sqlite")
             let dbQueue = try DatabaseQueue(path: dbURL.path)
             let database = try AppDatabase(dbQueue)
-            try database.seedIfEmpty()
+            try database.loadBundledCardsIfEmpty()
             return database
         } catch {
             fatalError("Database setup failed: \(error)")
