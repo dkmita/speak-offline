@@ -246,11 +246,22 @@ struct FlashcardView: View {
                         .font(.body)
                         .italic()
                     playbackButton
+                    explainButton
                 }
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal)
                 .transition(.opacity)
+
+                if let text = viewModel.explanation {
+                    Text(text)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal)
+                        .transition(.opacity)
+                }
             } else if viewModel.speechService.lastRecordingURL != nil
                 && !viewModel.speechService.isListening {
                 // Recorded audio but nothing recognized — let the user still
@@ -349,6 +360,31 @@ struct FlashcardView: View {
                 .symbolEffect(.pulse, isActive: viewModel.speechService.isPlayingBack)
         }
         .accessibilityLabel(viewModel.speechService.isPlayingBack ? "Stop playback" : "Play your recording")
+    }
+
+    // MARK: - Explain Button
+
+    /// "?" button that asks the on-device LLM why the user's speech-to-text
+    /// attempt was wrong. Only shows after a wrong attempt. Hidden once an
+    /// explanation has been generated or while one is loading.
+    @ViewBuilder
+    private var explainButton: some View {
+        if viewModel.speechMatched == false,
+           viewModel.explanation == nil,
+           !viewModel.isLoadingExplanation {
+            Button {
+                viewModel.requestExplanation()
+            } label: {
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+            }
+            .accessibilityLabel("Explain my mistake")
+        } else if viewModel.isLoadingExplanation {
+            ProgressView()
+                .controlSize(.small)
+                .padding(.horizontal, 4)
+        }
     }
 
     // MARK: - Rating Buttons

@@ -22,6 +22,10 @@ final class FlashcardViewModel: ObservableObject {
     /// the subsequent rate() call knows the dot is already present and
     /// the animation has already played.
     private var resultRecordedFromSpeech: Bool = false
+    /// On-device LLM explanation of why the speech-to-text attempt was
+    /// wrong. Populated by `requestExplanation()`; cleared on card change.
+    @Published var explanation: String? = nil
+    @Published var isLoadingExplanation: Bool = false
 
     let speechService: SpeechService
     let settings: UserSettings
@@ -181,6 +185,8 @@ final class FlashcardViewModel: ObservableObject {
             justAddedDotPending = false
             isAdvancing = false
             resultRecordedFromSpeech = false
+            explanation = nil
+            isLoadingExplanation = false
             speechService.stopListening()
             speechService.transcript = ""
             speechService.clearLastRecording()
@@ -224,6 +230,33 @@ final class FlashcardViewModel: ObservableObject {
         pickNextCard()
     }
 
+    /// Ask the on-device LLM for a one- or two-sentence insight into why
+    /// the user's speech-to-text attempt was wrong. Populates
+    /// `explanation` on success; sets a placeholder on failure.
+    func requestExplanation() {
+        guard let card = currentCard else { return }
+        let attempt = speechService.transcript
+        guard !attempt.isEmpty else { return }
+        guard !isLoadingExplanation, explanation == nil else { return }
+
+        isLoadingExplanation = true
+        let question = card.back
+        let expected = card.front
+
+        Task { @MainActor in
+            let result: String?
+            if #available(iOS 18.1, *) {
+                result = await ExplanationService.shared.explainMistake(
+                    question: question, expected: expected, attempt: attempt
+                )
+            } else {
+                result = nil
+            }
+            isLoadingExplanation = false
+            explanation = result ?? "Couldn't generate an explanation — on-device model unavailable."
+        }
+    }
+
     /// Jump straight to a specific card by id (used when the user taps a row
     /// in the analytics sheet). Resets review/answer state and refreshes the
     /// recent-results dots so it looks just like a freshly-picked card.
@@ -240,6 +273,8 @@ final class FlashcardViewModel: ObservableObject {
             justAddedDotPending = false
             isAdvancing = false
             resultRecordedFromSpeech = false
+            explanation = nil
+            isLoadingExplanation = false
             speechService.stopListening()
             speechService.transcript = ""
             speechService.clearLastRecording()

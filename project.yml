@@ -2,7 +2,7 @@ name: SpeakOffline
 options:
   bundleIdPrefix: com.speakoffline
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "18.1"
   xcodeVersion: "16.0"
   generateEmptyDirectories: true
 

@@ -26,6 +26,7 @@
 		A6FC1536198E132E1381548A /* HintResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */; };
 		B340FE9F503CC09AABFC7C24 /* seed.json in Resources */ = {isa = PBXBuildFile; fileRef = 67FFD869E3DC0CE20542FC58 /* seed.json */; };
 		B98068C842F8DD2FDC4D9583 /* HintResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180E9902A4A27ADE61473918 /* HintResolver.swift */; };
+		E3F1A2B4C5D6789012345AB1 /* ExplanationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6789012345EF2 /* ExplanationService.swift */; };
 		C8A4FA7F36042EDFF784AD0B /* vocab.json in Resources */ = {isa = PBXBuildFile; fileRef = 1EFD0C23F9DAB8F423E06459 /* vocab.json */; };
 		D034343FA68262EAA35AF365 /* VocabularyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF70F86D8A27EAF28CA9022E /* VocabularyServiceTests.swift */; };
 		D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440052248FBC4ECC81C41EDD /* AppDatabase.swift */; };
@@ -49,6 +50,7 @@
 		05D37FD47D761A8958DCEA6B /* VocabularyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyService.swift; sourceTree = "<group>"; };
 		0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolverTests.swift; sourceTree = "<group>"; };
 		180E9902A4A27ADE61473918 /* HintResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolver.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E6789012345EF2 /* ExplanationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplanationService.swift; sourceTree = "<group>"; };
 		1EFD0C23F9DAB8F423E06459 /* vocab.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = vocab.json; sourceTree = "<group>"; };
 		22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerWordsView.swift; sourceTree = "<group>"; };
 		39F237B88728089E391D98F9 /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListView.swift; sourceTree = "<group>"; };
@@ -160,6 +162,7 @@
 		8F7B188B3F9904F787B00FC3 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				F1A2B3C4D5E6789012345EF2 /* ExplanationService.swift */,
 				180E9902A4A27ADE61473918 /* HintResolver.swift */,
 				A488FE7AF9F8437987286241 /* SpeechService.swift */,
 				05D37FD47D761A8958DCEA6B /* VocabularyService.swift */,
@@ -304,6 +307,7 @@
 				88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */,
 				FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */,
 				B98068C842F8DD2FDC4D9583 /* HintResolver.swift in Sources */,
+				E3F1A2B4C5D6789012345AB1 /* ExplanationService.swift in Sources */,
 				3D3E7A38E06891207F21E42A /* LevelPickerView.swift in Sources */,
 				12F3BE51DF5A2B99B1490DAB /* PhraseListView.swift in Sources */,
 				67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */,
@@ -436,7 +440,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -493,7 +497,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
