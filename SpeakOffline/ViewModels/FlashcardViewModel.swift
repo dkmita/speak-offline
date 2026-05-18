@@ -39,55 +39,101 @@ final class FlashcardViewModel: ObservableObject {
         pickNextCard()
     }
 
-    /// Pick the next card using weighted random selection.
-    /// Weight favors: low ease factor, low repetitions, high section (newer material),
-    /// and recently failed cards. Cards shown in the last 20 are excluded.
+    /// Pick the next card using weighted random selection. Weight combines:
+    /// - Per-card ease/reps (struggle cards bubble up)
+    /// - Per-card miss rate (cards you've gotten wrong more often outweigh
+    ///   ones you've gotten right)
+    /// - Last-review-wrong flag (just-missed cards get a strong push)
+    /// - Per-section accuracy (Duolingo sections you're already good at
+    ///   contribute less to the pool)
+    /// Cards shown in the last 20 are excluded.
     func pickNextCard() {
         let maxSection = settings.maxSection
         let excluded = recentCardIds
 
         do {
             let candidates = try database.dbQueue.read { db -> [(Card, Double)] in
-                var query = Card.filter(Column("section") <= maxSection)
+                // Per-Duolingo-section accuracy (card.unit = section index 1-8).
+                // Needs ≥10 reviews in that section to count; otherwise neutral.
+                let accuracyRows = try Row.fetchAll(db, sql: """
+                    SELECT card.unit AS sec,
+                           COUNT(*) AS total,
+                           SUM(CASE WHEN rs.quality >= 3 THEN 1 ELSE 0 END) AS correct
+                    FROM reviewSession rs
+                    JOIN card ON rs.cardId = card.id
+                    GROUP BY card.unit
+                """)
+                var sectionAccuracy: [Int: Double] = [:]
+                for row in accuracyRows {
+                    let sec: Int = row["sec"]
+                    let total: Int = row["total"]
+                    let correct: Int = row["correct"]
+                    if total >= 10 {
+                        sectionAccuracy[sec] = Double(correct) / Double(total)
+                    }
+                }
 
-                // Exclude recently shown cards
+                // Per-card stats: total reviews, miss count, last-review-was-wrong.
+                let statsRows = try Row.fetchAll(db, sql: """
+                    SELECT
+                        rs.cardId AS cardId,
+                        COUNT(*) AS total,
+                        SUM(CASE WHEN rs.quality < 3 THEN 1 ELSE 0 END) AS misses,
+                        (SELECT quality FROM reviewSession rs2
+                         WHERE rs2.cardId = rs.cardId
+                         ORDER BY reviewedAt DESC LIMIT 1) AS lastQuality
+                    FROM reviewSession rs
+                    GROUP BY rs.cardId
+                """)
+                struct CardStats { let total: Int; let misses: Int; let lastWrong: Bool }
+                var cardStats: [Int64: CardStats] = [:]
+                for row in statsRows {
+                    let id: Int64 = row["cardId"]
+                    let total: Int = row["total"]
+                    let misses: Int = row["misses"]
+                    let lastQuality: Int = row["lastQuality"]
+                    cardStats[id] = CardStats(total: total, misses: misses, lastWrong: lastQuality < 3)
+                }
+
+                var query = Card.filter(Column("section") <= maxSection)
                 if !excluded.isEmpty {
                     query = query.filter(!excluded.contains(Column("id")))
                 }
-
                 let cards = try query.fetchAll(db)
 
-                // Find cards that were failed recently (quality < 3 in last 50 reviews)
-                let recentFailIds: Set<Int64> = try {
-                    let rows = try Row.fetchAll(db, sql: """
-                        SELECT DISTINCT cardId FROM reviewSession
-                        WHERE quality < 3
-                        ORDER BY reviewedAt DESC
-                        LIMIT 50
-                    """)
-                    return Set(rows.map { $0["cardId"] as Int64 })
-                }()
-
-                // Calculate weight for each card — higher weight = more likely to be picked
-                return cards.map { card in
-                    // Base weight: inverse of ease * reps — struggle cards get high weight
+                return cards.map { card -> (Card, Double) in
+                    // Base: inverse of ease × reps. Struggle cards float up.
                     let easeWeight = 1.0 / (card.easeFactor * Double(card.repetitions + 1))
 
-                    // Section proximity: cards closer to maxSection (newer) get a boost
-                    let sectionBoost = 1.0 + Double(card.section) / Double(maxSection)
+                    let stats = card.id.flatMap { cardStats[$0] }
+                    let total = stats?.total ?? 0
+                    let misses = stats?.misses ?? 0
+                    let lastWrong = stats?.lastWrong ?? false
 
-                    // Recently failed cards get the strongest boost (10x)
-                    // New cards get a moderate boost (2x)
+                    // Miss-rate boost: 1.0 (never missed) → up to 3.0 (always missed).
+                    // Needs ≥3 reviews to engage; otherwise neutral.
+                    let missBoost: Double = total >= 3
+                        ? 1.0 + Double(misses) / Double(total) * 2.0
+                        : 1.0
+
+                    // Status boost: strong push for last-review-wrong; moderate
+                    // for never-seen cards.
                     let statusBoost: Double
-                    if let id = card.id, recentFailIds.contains(id) {
+                    if lastWrong {
                         statusBoost = 10.0
-                    } else if card.repetitions == 0 {
+                    } else if total == 0 {
                         statusBoost = 2.0
                     } else {
                         statusBoost = 1.0
                     }
 
-                    let weight = easeWeight * sectionBoost * statusBoost
+                    // Per-section accuracy: high-accuracy sections get less weight.
+                    // 100% accuracy → 0.3×; 50% → 1.0×; 0% → 1.7×.
+                    // No data → neutral 1.0×.
+                    let acc = sectionAccuracy[card.unit] ?? 0.5
+                    let sectionAccuracyBoost = 0.3 + (1.0 - acc) * 1.4
+
+                    let weight = easeWeight * missBoost * statusBoost * sectionAccuracyBoost
                     return (card, weight)
                 }
             }

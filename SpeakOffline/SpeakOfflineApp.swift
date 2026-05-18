@@ -11,8 +11,6 @@ struct SpeakOfflineApp: App {
         Task.detached(priority: .utility) {
             _ = VocabularyService.shared
         }
-        // Draw from the full course; level picker is bypassed for now.
-        UserSettings.shared.maxSection = 286
     }
 
     var body: some Scene {
@@ -22,6 +20,7 @@ struct SpeakOfflineApp: App {
                 languageCode: "es",
                 settings: settings
             ))
+            .environmentObject(settings)
         }
     }
 }

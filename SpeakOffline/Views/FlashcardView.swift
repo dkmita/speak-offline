@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FlashcardView: View {
     @StateObject var viewModel: FlashcardViewModel
+    @EnvironmentObject private var settings: UserSettings
     @State private var isMicPressed = false
     @State private var showingAnalytics = false
 
@@ -27,6 +28,8 @@ struct FlashcardView: View {
                     }
 
                     Spacer()
+
+                    maxLevelMenu
 
                     Button {
                         showingAnalytics = true
@@ -138,20 +141,67 @@ struct FlashcardView: View {
         }
     }
 
-    // MARK: - Card Metadata
+    // MARK: - Course Structure
+
+    /// Mirrors the section layout used to build seed.json. Index 0 = Rookie.
+    private static let sectionNames = ["Rookie", "Explorer", "Traveler", "Trailblazer",
+                                       "Pathfinder", "Wanderer", "Challenger", "Navigator"]
+    private static let sectionCefr = ["Intro", "A1", "A1", "A2", "B1", "B1", "B2", "B2"]
+    /// Cumulative unit counts. `sectionStartOffsets[i]` = total units before section i+1.
+    /// So Rookie covers sections 1...8, Explorer 9...34, etc.
+    private static let sectionStartOffsets = [0, 8, 34, 62, 114, 164, 214, 250]
+    private static let sectionEndOffsets = [8, 34, 62, 114, 164, 214, 250, 286]
 
     /// Format: "Traveler 3.5 · A1"
     /// Maps the legacy (unit, section) fields back to Duolingo's
     /// section-name + within-section unit numbering.
     private func cardMetadata(_ card: Card) -> String {
-        let sectionNames = ["Rookie", "Explorer", "Traveler", "Trailblazer",
-                            "Pathfinder", "Wanderer", "Challenger", "Navigator"]
-        // Cumulative unit count before each section (index = section number)
-        let offsets = [0, 0, 8, 34, 62, 114, 164, 214, 250]
         let s = card.unit
         guard (1...8).contains(s) else { return card.cefrLevel }
-        let unitWithinSection = card.section - offsets[s]
-        return "\(sectionNames[s - 1]) \(s).\(unitWithinSection) · \(card.cefrLevel)"
+        let unitWithinSection = card.section - Self.sectionStartOffsets[s - 1]
+        return "\(Self.sectionNames[s - 1]) \(s).\(unitWithinSection) · \(card.cefrLevel)"
+    }
+
+    // MARK: - Max Level Menu
+
+    /// Menu that lets the user cap the pool of cards by section.
+    /// Label shows the currently-selected level (e.g. "Up to A1").
+    private var maxLevelMenu: some View {
+        Menu {
+            ForEach(0..<8) { i in
+                Button {
+                    settings.maxSection = Self.sectionEndOffsets[i]
+                } label: {
+                    let name = Self.sectionNames[i]
+                    let cefr = Self.sectionCefr[i]
+                    if settings.maxSection == Self.sectionEndOffsets[i] {
+                        Label("\(cefr) · \(name)", systemImage: "checkmark")
+                    } else {
+                        Text("\(cefr) · \(name)")
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 2) {
+                Text(currentMaxLevelLabel)
+                Image(systemName: "chevron.down")
+                    .font(.caption2)
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+        .accessibilityLabel("Maximum level")
+    }
+
+    /// "Up to A1", "Up to B1", or "Up to B2" depending on what maxSection covers.
+    private var currentMaxLevelLabel: String {
+        let max = settings.maxSection
+        for i in 0..<8 {
+            if max <= Self.sectionEndOffsets[i] {
+                return "Up to \(Self.sectionCefr[i])"
+            }
+        }
+        return "Up to B2"
     }
 
     // MARK: - Mic Section
