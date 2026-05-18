@@ -211,23 +211,28 @@ struct FlashcardView: View {
     private var transcriptSection: some View {
         VStack(spacing: 4) {
             if !viewModel.speechService.transcript.isEmpty {
-                HStack(spacing: 6) {
-                    if let matched = viewModel.speechMatched {
-                        if matched {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
-                        } else if !viewModel.isShowingAnswer {
-                            // Once the answer is revealed the yellow warning
-                            // becomes nagging — the user can see the real
-                            // answer above. Keep the green check around as
-                            // positive feedback when they matched.
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
+                HStack(alignment: .center, spacing: 12) {
+                    HStack(spacing: 6) {
+                        if let matched = viewModel.speechMatched {
+                            if matched {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            } else if !viewModel.isShowingAnswer {
+                                // Once the answer is revealed the yellow
+                                // warning becomes nagging — the user can see
+                                // the real answer above. Keep the green check
+                                // around as positive feedback when they
+                                // matched.
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.yellow)
+                            }
                         }
+                        Text(viewModel.coloredTranscript())
+                            .font(.body)
+                            .italic()
                     }
-                    Text(viewModel.coloredTranscript())
-                        .font(.body)
-                        .italic()
+                    .frame(maxWidth: .infinity)
+
                     playbackButton
                     explainButton
                 }
@@ -249,8 +254,12 @@ struct FlashcardView: View {
                 && !viewModel.speechService.isListening {
                 // Recorded audio but nothing recognized — let the user still
                 // hear themselves.
-                playbackButton
-                    .transition(.opacity)
+                HStack {
+                    Spacer()
+                    playbackButton
+                }
+                .padding(.horizontal)
+                .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, minHeight: 48, alignment: .top)
@@ -337,10 +346,13 @@ struct FlashcardView: View {
                 viewModel.speechService.playLastRecording()
             }
         } label: {
-            Image(systemName: viewModel.speechService.isPlayingBack ? "stop.circle.fill" : "play.circle.fill")
+            Image(systemName: viewModel.speechService.isPlayingBack
+                  ? "speaker.wave.2.fill" : "speaker.wave.2")
                 .font(.title3)
                 .foregroundStyle(Color.accentColor)
                 .symbolEffect(.pulse, isActive: viewModel.speechService.isPlayingBack)
+                .frame(width: 32, height: 32)
+                .contentShape(Rectangle())
         }
         .accessibilityLabel(viewModel.speechService.isPlayingBack ? "Stop playback" : "Play your recording")
     }

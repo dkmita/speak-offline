@@ -13,6 +13,8 @@ struct AnswerWordsView: View {
     let phonetic: String?
     let font: Font
 
+    @StateObject private var tts = SpanishTTSService.shared
+
     private var pairs: [(word: String, phonetic: String?)] {
         let words = text.components(separatedBy: " ").filter { !$0.isEmpty }
         let phoneticWords = (phonetic ?? "")
@@ -24,18 +26,38 @@ struct AnswerWordsView: View {
     }
 
     var body: some View {
-        WordPhoneticRow(wordSpacing: 6, lineSpacing: 4) {
-            ForEach(Array(pairs.enumerated()), id: \.offset) { _, pair in
-                VStack(spacing: 1) {
-                    Text(pair.word)
-                        .font(font)
-                    if let phon = pair.phonetic {
-                        Text(phon)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+        HStack(alignment: .center, spacing: 12) {
+            WordPhoneticRow(wordSpacing: 6, lineSpacing: 4) {
+                ForEach(Array(pairs.enumerated()), id: \.offset) { _, pair in
+                    VStack(spacing: 1) {
+                        Text(pair.word)
+                            .font(font)
+                        if let phon = pair.phonetic {
+                            Text(phon)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
+            .frame(maxWidth: .infinity)
+
+            Button {
+                if tts.isSpeaking {
+                    tts.stop()
+                } else {
+                    tts.speak(text)
+                }
+            } label: {
+                Image(systemName: tts.isSpeaking
+                      ? "speaker.wave.2.fill" : "speaker.wave.2")
+                    .font(.title3)
+                    .foregroundStyle(Color.accentColor)
+                    .symbolEffect(.pulse, isActive: tts.isSpeaking)
+                    .frame(width: 32, height: 32)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(tts.isSpeaking ? "Stop audio" : "Play Spanish audio")
         }
     }
 }
