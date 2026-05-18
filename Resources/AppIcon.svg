@@ -1,0 +1,44 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF7A5C"/>
+      <stop offset="1" stop-color="#E83E8C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Full-bleed background; iOS rounds the corners automatically -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Speech bubble: rounded body with a tail pointing down-left -->
+  <path d="
+    M 258 160
+    L 766 160
+    Q 896 160, 896 290
+    L 896 610
+    Q 896 740, 766 740
+    L 420 740
+    L 220 870
+    L 300 740
+    L 258 740
+    Q 128 740, 128 610
+    L 128 290
+    Q 128 160, 258 160
+    Z
+  " fill="white"/>
+
+  <!-- Wi-Fi arcs (three nested semicircles + base dot) -->
+  <g stroke="#E83E8C" stroke-linecap="round" fill="none" stroke-width="36">
+    <path d="M 332 540 A 180 180 0 0 1 692 540"/>
+    <path d="M 387 540 A 125 125 0 0 1 637 540"/>
+    <path d="M 452 540 A 60 60 0 0 1 572 540"/>
+  </g>
+  <circle cx="512" cy="590" r="26" fill="#E83E8C"/>
+
+  <!-- Diagonal slash. White halo (slightly wider than the magenta stroke)
+       creates a thin gap that visually separates the slash from the arcs
+       it crosses, instead of blending into one shape. -->
+  <line x1="312" y1="608" x2="700" y2="288"
+        stroke="white" stroke-width="68" stroke-linecap="round"/>
+  <line x1="312" y1="608" x2="700" y2="288"
+        stroke="#E83E8C" stroke-width="44" stroke-linecap="round"/>
+</svg>
