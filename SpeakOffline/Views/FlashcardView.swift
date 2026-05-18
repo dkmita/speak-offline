@@ -103,29 +103,12 @@ struct FlashcardView: View {
                 // Press-and-hold mic — sits right above the rating/skip row.
                 micButton
 
-                // Rating buttons — always take up space
-                if viewModel.isShowingAnswer {
-                    if viewModel.speechMatched == true {
-                        Button("Next") {
-                            viewModel.rate(quality: 5)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .disabled(viewModel.isAdvancing)
-                    } else {
-                        manualRatingButtons
-                            .disabled(viewModel.isAdvancing)
-                    }
-                } else {
-                    // Before answer is shown: skip without rating.
-                    Button("Skip") {
-                        viewModel.skip()
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .tint(.secondary)
+                // Action row — height is locked to the tallest variant
+                // (manualRatingButtons) so the layout doesn't shift between
+                // Skip / single Next / two-button rating.
+                actionRow
+                    .frame(maxWidth: .infinity)
                     .disabled(viewModel.isAdvancing)
-                }
 
                 // Progress
                 Text("\(viewModel.cardsReviewed) reviewed")
@@ -387,7 +370,46 @@ struct FlashcardView: View {
         }
     }
 
-    // MARK: - Rating Buttons
+    // MARK: - Action Row
+
+    /// Renders one of three states using a shared button height so the
+    /// section doesn't change height when the variant flips:
+    /// - Answer hidden: Skip
+    /// - Answer shown + speech matched: single Next
+    /// - Answer shown + speech mismatch: Got it / Next pair
+    @ViewBuilder
+    private var actionRow: some View {
+        if viewModel.isShowingAnswer {
+            if viewModel.speechMatched == true {
+                Button {
+                    viewModel.rate(quality: 5)
+                } label: {
+                    actionLabel("Next", bold: true)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.horizontal)
+            } else {
+                manualRatingButtons
+            }
+        } else {
+            Button {
+                viewModel.skip()
+            } label: {
+                actionLabel("Skip", bold: false)
+            }
+            .buttonStyle(.bordered)
+            .tint(.secondary)
+            .padding(.horizontal)
+        }
+    }
+
+    private func actionLabel(_ title: String, bold: Bool) -> some View {
+        Text(title)
+            .font(.subheadline)
+            .fontWeight(bold ? .bold : .regular)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+    }
 
     private var manualRatingButtons: some View {
         HStack(spacing: 12) {
@@ -395,10 +417,7 @@ struct FlashcardView: View {
             Button {
                 viewModel.rate(quality: 4)
             } label: {
-                Text("Got it")
-                    .font(.subheadline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                actionLabel("Got it", bold: false)
             }
             .buttonStyle(.bordered)
             .tint(.green.opacity(0.6))
@@ -407,11 +426,7 @@ struct FlashcardView: View {
             Button {
                 viewModel.rate(quality: 1)
             } label: {
-                Text("Next")
-                    .font(.subheadline)
-                    .bold()
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                actionLabel("Next", bold: true)
             }
             .buttonStyle(.borderedProminent)
         }
