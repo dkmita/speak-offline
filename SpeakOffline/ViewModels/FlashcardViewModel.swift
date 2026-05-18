@@ -224,6 +224,38 @@ final class FlashcardViewModel: ObservableObject {
         pickNextCard()
     }
 
+    /// Jump straight to a specific card by id (used when the user taps a row
+    /// in the analytics sheet). Resets review/answer state and refreshes the
+    /// recent-results dots so it looks just like a freshly-picked card.
+    /// The next rate()/skip() call returns to normal random picking.
+    func loadCard(id: Int64) {
+        do {
+            let card = try database.dbQueue.read { db in
+                try Card.fetchOne(db, key: id)
+            }
+            guard let card else { return }
+            currentCard = card
+            isShowingAnswer = false
+            speechMatched = nil
+            justAddedDotPending = false
+            isAdvancing = false
+            resultRecordedFromSpeech = false
+            speechService.stopListening()
+            speechService.transcript = ""
+            speechService.clearLastRecording()
+            loadRecentResults(for: id)
+
+            // Track in the recent-window buffer so the picker doesn't
+            // immediately re-roll the same card on the next advance.
+            recentCardIds.append(id)
+            if recentCardIds.count > recentWindow {
+                recentCardIds.removeFirst()
+            }
+        } catch {
+            // Silently fail; user can pick another card.
+        }
+    }
+
     /// Push-to-talk: invoked when the mic button is pressed down. Clears any
     /// previous transcript/match state, then starts listening. The answer is
     /// not evaluated until `endPushToTalk()` is called on release.

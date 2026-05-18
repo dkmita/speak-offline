@@ -4,6 +4,9 @@ import Combine
 
 struct PhraseListView: View {
     @StateObject private var viewModel = PhraseListViewModel()
+    /// Tapping a row invokes this with the card's id. Lets the parent
+    /// dismiss the sheet and surface the chosen card for study.
+    var onSelect: ((Int64) -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -80,36 +83,42 @@ struct PhraseListView: View {
             // Phrase list
             ScrollViewReader { proxy in
                 List(viewModel.phrases) { phrase in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(phrase.front)
-                            .font(.subheadline)
-                            .bold()
-                        Text(phrase.back)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    Button {
+                        onSelect?(phrase.id)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(phrase.front)
+                                .font(.subheadline)
+                                .bold()
+                            Text(phrase.back)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
 
-                        HStack(spacing: 12) {
-                            Label(phrase.cefrLevel, systemImage: "graduationcap")
-                            Label("S\(phrase.section)", systemImage: "number")
-                            Label(phrase.easeLabel, systemImage: "brain")
-                            Label("\(phrase.repetitions)x", systemImage: "arrow.counterclockwise")
-                        }
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                            HStack(spacing: 12) {
+                                Label(phrase.cefrLevel, systemImage: "graduationcap")
+                                Label("S\(phrase.section)", systemImage: "number")
+                                Label(phrase.easeLabel, systemImage: "brain")
+                                Label("\(phrase.repetitions)x", systemImage: "arrow.counterclockwise")
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
 
-                        HStack(spacing: 4) {
-                            // Show last 5 reviews: green = correct, red = wrong, gray = no review
-                            // Reversed so oldest is on the left, newest on the right
-                            ForEach(0..<5, id: \.self) { i in
-                                let dot = phrase.recentResults[4 - i]
-                                Circle()
-                                    .fill(dot == .correct ? Color.green
-                                          : dot == .wrong ? Color.red
-                                          : Color.gray.opacity(0.3))
-                                    .frame(width: 6, height: 6)
+                            HStack(spacing: 4) {
+                                // Show last 5 reviews: green = correct, red = wrong, gray = no review
+                                // Reversed so oldest is on the left, newest on the right
+                                ForEach(0..<5, id: \.self) { i in
+                                    let dot = phrase.recentResults[4 - i]
+                                    Circle()
+                                        .fill(dot == .correct ? Color.green
+                                              : dot == .wrong ? Color.red
+                                              : Color.gray.opacity(0.3))
+                                        .frame(width: 6, height: 6)
+                                }
                             }
                         }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     .id(phrase.section)
                 }
                 .onChange(of: viewModel.scrollToSection) { _, section in

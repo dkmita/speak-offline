@@ -147,12 +147,15 @@ struct FlashcardView: View {
         .animation(.easeInOut(duration: 0.25), value: viewModel.speechMatched)
         .sheet(isPresented: $showingAnalytics) {
             NavigationStack {
-                PhraseListView()
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Done") { showingAnalytics = false }
-                        }
+                PhraseListView { cardId in
+                    showingAnalytics = false
+                    viewModel.loadCard(id: cardId)
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") { showingAnalytics = false }
                     }
+                }
             }
         }
     }
