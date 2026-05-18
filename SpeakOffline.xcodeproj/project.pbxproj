@@ -10,24 +10,23 @@
 		06B2F3174537B657E519232E /* Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 996954FA2861C7F4EC604145 /* Deck.swift */; };
 		0756A0322A68D5EAC10EF73D /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A488FE7AF9F8437987286241 /* SpeechService.swift */; };
 		12F3BE51DF5A2B99B1490DAB /* PhraseListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 936CB841AD56BC8E8BAE5AEB /* PhraseListView.swift */; };
+		1CBBD5EEC67B31B797343177 /* ExplanationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D839FCE3CC54CB15FFA30B67 /* ExplanationService.swift */; };
 		1EA1C5AE9DCE672B128CCC54 /* DeckListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39F237B88728089E391D98F9 /* DeckListView.swift */; };
 		25BB7A01EDA177101A07D081 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4976D180D73D4AEAD878BF97 /* UserSettings.swift */; };
 		2BCB5A06D9EF203D268702A2 /* VocabularyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05D37FD47D761A8958DCEA6B /* VocabularyService.swift */; };
-		3D3E7A38E06891207F21E42A /* LevelPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 871CB950566ACD54E039179B /* LevelPickerView.swift */; };
 		4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3A64870782AD61A8255FCD89 /* Assets.xcassets */; };
+		4FA892241E0FBCFC079A192E /* SpanishTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398E2ABDA2728CC38DC814A7 /* SpanishTTSService.swift */; };
 		5A70B17360D49331E82CCC0D /* TappableWordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */; };
 		5D4BF4D7DE0C99131CAD9667 /* SpeakOfflineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */; };
 		60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */; };
 		60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723806FAB089A367D9040B22 /* DeckListViewModel.swift */; };
 		60D64811EF4A85D748EF7B9A /* AnswerWordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */; };
 		67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC9BD877A07C1F67989317A6 /* ReviewSession.swift */; };
+		791B4C1DD37F1ACC1640415F /* Resources in Resources */ = {isa = PBXBuildFile; fileRef = 4B56192EED5259120B81DFD6 /* Resources */; };
 		7FD0A21F2674AE0CB035BE6D /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4849C3C770319D9E1C5F13D7 /* GRDB */; };
 		88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4672B74B1E0D204E9D234B05 /* FlashcardView.swift */; };
 		A6FC1536198E132E1381548A /* HintResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */; };
-		B340FE9F503CC09AABFC7C24 /* cards.json in Resources */ = {isa = PBXBuildFile; fileRef = 67FFD869E3DC0CE20542FC58 /* cards.json */; };
 		B98068C842F8DD2FDC4D9583 /* HintResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180E9902A4A27ADE61473918 /* HintResolver.swift */; };
-		E3F1A2B4C5D6789012345AB1 /* ExplanationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6789012345EF2 /* ExplanationService.swift */; };
-		C8A4FA7F36042EDFF784AD0B /* vocab.json in Resources */ = {isa = PBXBuildFile; fileRef = 1EFD0C23F9DAB8F423E06459 /* vocab.json */; };
 		D034343FA68262EAA35AF365 /* VocabularyServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF70F86D8A27EAF28CA9022E /* VocabularyServiceTests.swift */; };
 		D7993C4150812BAF41884A91 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 440052248FBC4ECC81C41EDD /* AppDatabase.swift */; };
 		DCBE27B2FD5C3FAC3308C889 /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022FEFF32CAB57F19272FE49 /* Card.swift */; };
@@ -50,25 +49,24 @@
 		05D37FD47D761A8958DCEA6B /* VocabularyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyService.swift; sourceTree = "<group>"; };
 		0DC3C0C9525A1B9ACFC3D123 /* HintResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolverTests.swift; sourceTree = "<group>"; };
 		180E9902A4A27ADE61473918 /* HintResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintResolver.swift; sourceTree = "<group>"; };
-		F1A2B3C4D5E6789012345EF2 /* ExplanationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplanationService.swift; sourceTree = "<group>"; };
-		1EFD0C23F9DAB8F423E06459 /* vocab.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = vocab.json; sourceTree = "<group>"; };
 		22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerWordsView.swift; sourceTree = "<group>"; };
+		398E2ABDA2728CC38DC814A7 /* SpanishTTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpanishTTSService.swift; sourceTree = "<group>"; };
 		39F237B88728089E391D98F9 /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListView.swift; sourceTree = "<group>"; };
 		3A64870782AD61A8255FCD89 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		440052248FBC4ECC81C41EDD /* AppDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 		4672B74B1E0D204E9D234B05 /* FlashcardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardView.swift; sourceTree = "<group>"; };
 		4976D180D73D4AEAD878BF97 /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
-		67FFD869E3DC0CE20542FC58 /* cards.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = cards.json; sourceTree = "<group>"; };
+		4B56192EED5259120B81DFD6 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Resources; path = SpeakOffline/Resources; sourceTree = SOURCE_ROOT; };
 		6C54355E556A2E7AF19675FA /* SpeakOfflineTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SpeakOfflineTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TappableWordsView.swift; sourceTree = "<group>"; };
 		723806FAB089A367D9040B22 /* DeckListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckListViewModel.swift; sourceTree = "<group>"; };
-		871CB950566ACD54E039179B /* LevelPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelPickerView.swift; sourceTree = "<group>"; };
 		936CB841AD56BC8E8BAE5AEB /* PhraseListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhraseListView.swift; sourceTree = "<group>"; };
 		95F12EE9E2B9FD1F5256F7C4 /* SpeakOffline.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SpeakOffline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		98F7832619F10D91A6EF34CA /* SpeakOfflineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakOfflineTests.swift; sourceTree = "<group>"; };
 		996954FA2861C7F4EC604145 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deck.swift; sourceTree = "<group>"; };
 		A488FE7AF9F8437987286241 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechService.swift; sourceTree = "<group>"; };
 		D713EA5F72F3DD94C272A76A /* FlashcardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlashcardViewModel.swift; sourceTree = "<group>"; };
+		D839FCE3CC54CB15FFA30B67 /* ExplanationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplanationService.swift; sourceTree = "<group>"; };
 		E69FAF965358628C04A57594 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		EC9BD877A07C1F67989317A6 /* ReviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewSession.swift; sourceTree = "<group>"; };
 		FF70F86D8A27EAF28CA9022E /* VocabularyServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VocabularyServiceTests.swift; sourceTree = "<group>"; };
@@ -89,6 +87,7 @@
 		082E4F9D3D6566C617A093CE = {
 			isa = PBXGroup;
 			children = (
+				4B56192EED5259120B81DFD6 /* Resources */,
 				7A7267500571FE31899BBECC /* SpeakOffline */,
 				AAC2F54D3246971ED9AAD057 /* SpeakOfflineTests */,
 				09941B1708EDD1840DC2246B /* Products */,
@@ -110,7 +109,6 @@
 				22FBF671D7139F80AFD4CDE8 /* AnswerWordsView.swift */,
 				39F237B88728089E391D98F9 /* DeckListView.swift */,
 				4672B74B1E0D204E9D234B05 /* FlashcardView.swift */,
-				871CB950566ACD54E039179B /* LevelPickerView.swift */,
 				936CB841AD56BC8E8BAE5AEB /* PhraseListView.swift */,
 				713899CCEA8D3E76D44A92CE /* TappableWordsView.swift */,
 			);
@@ -137,9 +135,7 @@
 			children = (
 				3A64870782AD61A8255FCD89 /* Assets.xcassets */,
 				E69FAF965358628C04A57594 /* Info.plist */,
-				67FFD869E3DC0CE20542FC58 /* cards.json */,
 				043F3D4265E0EAB83FAB7373 /* SpeakOfflineApp.swift */,
-				1EFD0C23F9DAB8F423E06459 /* vocab.json */,
 				2715A33E9B664783586EF5D4 /* Database */,
 				A691F474A46647DE46CBBC89 /* Models */,
 				26050548966F78C780751C78 /* Preview Content */,
@@ -162,8 +158,9 @@
 		8F7B188B3F9904F787B00FC3 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				F1A2B3C4D5E6789012345EF2 /* ExplanationService.swift */,
+				D839FCE3CC54CB15FFA30B67 /* ExplanationService.swift */,
 				180E9902A4A27ADE61473918 /* HintResolver.swift */,
+				398E2ABDA2728CC38DC814A7 /* SpanishTTSService.swift */,
 				A488FE7AF9F8437987286241 /* SpeechService.swift */,
 				05D37FD47D761A8958DCEA6B /* VocabularyService.swift */,
 			);
@@ -276,8 +273,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4146E1490AE5153F0B24AF82 /* Assets.xcassets in Resources */,
-				B340FE9F503CC09AABFC7C24 /* cards.json in Resources */,
-				C8A4FA7F36042EDFF784AD0B /* vocab.json in Resources */,
+				791B4C1DD37F1ACC1640415F /* Resources in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,13 +300,13 @@
 				06B2F3174537B657E519232E /* Deck.swift in Sources */,
 				1EA1C5AE9DCE672B128CCC54 /* DeckListView.swift in Sources */,
 				60AB023EC6DBE06FF8635F22 /* DeckListViewModel.swift in Sources */,
+				1CBBD5EEC67B31B797343177 /* ExplanationService.swift in Sources */,
 				88D5FB9DFEB3F04298B5BC66 /* FlashcardView.swift in Sources */,
 				FF748412221B0134752286A2 /* FlashcardViewModel.swift in Sources */,
 				B98068C842F8DD2FDC4D9583 /* HintResolver.swift in Sources */,
-				E3F1A2B4C5D6789012345AB1 /* ExplanationService.swift in Sources */,
-				3D3E7A38E06891207F21E42A /* LevelPickerView.swift in Sources */,
 				12F3BE51DF5A2B99B1490DAB /* PhraseListView.swift in Sources */,
 				67D09832C2DF97AEE51A05BF /* ReviewSession.swift in Sources */,
+				4FA892241E0FBCFC079A192E /* SpanishTTSService.swift in Sources */,
 				60AADFDC2D15EB4AAC682162 /* SpeakOfflineApp.swift in Sources */,
 				0756A0322A68D5EAC10EF73D /* SpeechService.swift in Sources */,
 				5A70B17360D49331E82CCC0D /* TappableWordsView.swift in Sources */,
@@ -351,7 +347,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = U55L26VLXT;
@@ -372,7 +370,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = U55L26VLXT;
